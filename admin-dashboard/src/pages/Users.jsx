@@ -3,36 +3,17 @@ import { EditUserForm } from "../components/EditUserForm";
 import { Modal } from "../components/Modal";
 import { SelectedUser } from "../components/SelectedUser";
 import { UserTable } from "../components/UserTable";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { getUsers } from "../services/userService";
 function Users() {
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteUser, setDeleteUser] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [users, setUsers] = useState([
-    {
-      id: 1,
-      name: "John Banda",
-      email: "john@example.com",
-      role: "Admin",
-      status: "Active",
-    },
-    {
-      id: 2,
-      name: "Mary Phiri",
-      email: "mary@example.com",
-      role: "Doctor",
-      status: "Active",
-    },
-    {
-      id: 3,
-      name: "Peter Mbewe",
-      email: "peter@example.com",
-      role: "Receptionist",
-      status: "Inactive",
-    },
-  ]);
+  const [users, setUsers] = useState([]);
 
   const filteredUsers = users.filter((user) => {
     const search = searchTerm.trim().toLowerCase();
@@ -73,29 +54,47 @@ function Users() {
   }
 
   function handleDeleteUser(id) {
-    const user = users.find((user)=> user.id === id);
+    const user = users.find((user) => user.id === id);
     setDeleteUser(user);
     setIsDeleteModalOpen(true);
   }
 
-  function handleConfirmDelete(){
-    setUsers((prevUsers)=> prevUsers.filter((user)=> user.id !== deleteUser.id ));
+  function handleConfirmDelete() {
+    setUsers((prevUsers) =>
+      prevUsers.filter((user) => user.id !== deleteUser.id),
+    );
     setIsDeleteModalOpen(false);
   }
 
-  function handleCancelDelete(){
+  function handleCancelDelete() {
     setDeleteUser(null);
     setIsDeleteModalOpen(false);
   }
+  useEffect(() => {
+    async function loadUsers() {
+      try {
+        const loadedUsers = await getUsers();
+        setUsers(loadedUsers);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadUsers();
+  }, []);
 
   return (
     <div>
       <h1>Users</h1>
       <AddUserForm onAddUser={handleAddUser} />
-      {isDeleteModalOpen && <Modal onClose={handleCancelDelete} onConfirm={handleConfirmDelete}>
-        <h3>Delete User</h3>
-        <p>Are you sure you want to delete {deleteUser.name}?</p>
-        </Modal>}
+      {isDeleteModalOpen && (
+        <Modal onClose={handleCancelDelete} onConfirm={handleConfirmDelete}>
+          <h3>Delete User</h3>
+          <p>Are you sure you want to delete {deleteUser.name}?</p>
+        </Modal>
+      )}
 
       {editingUser && (
         <EditUserForm onSave={handleSaveUser} user={editingUser} />
@@ -106,17 +105,25 @@ function Users() {
         value={searchTerm}
         onChange={(event) => setSearchTerm(event.target.value)}
       />
-      {filteredUsers.length === 0 ? (
-        <p>No users found.</p>
+      {loading ? (
+        <p>Loading users...</p>
+      ) : error ? (
+        <p>{error}</p>
       ) : (
-        <UserTable
-          users={filteredUsers}
-          onViewUser={handleViewUser}
-          onEditUser={handleEditUser}
-          onDeleteUser={handleDeleteUser}
-        />
+        <>
+          {filteredUsers.length === 0 ? (
+            <p>No users found.</p>
+          ) : (
+            <UserTable
+              users={filteredUsers}
+              onViewUser={handleViewUser}
+              onEditUser={handleEditUser}
+              onDeleteUser={handleDeleteUser}
+            />
+          )}
+          {selectedUser && <SelectedUser user={selectedUser} />}
+        </>
       )}
-      {selectedUser && <SelectedUser user={selectedUser} />}
     </div>
   );
 }
