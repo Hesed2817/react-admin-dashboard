@@ -1,5 +1,6 @@
 import { AddUserForm } from "../components/AddUserForm";
 import { EditUserForm } from "../components/EditUserForm";
+import { Modal } from "../components/Modal";
 import { SelectedUser } from "../components/SelectedUser";
 import { UserTable } from "../components/UserTable";
 import { useState } from "react";
@@ -7,6 +8,8 @@ function Users() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [deleteUser, setDeleteUser] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [users, setUsers] = useState([
     {
       id: 1,
@@ -70,19 +73,29 @@ function Users() {
   }
 
   function handleDeleteUser(id) {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete the user?",
-    );
+    const user = users.find((user)=> user.id === id);
+    setDeleteUser(user);
+    setIsDeleteModalOpen(true);
+  }
 
-    if (confirmed) {
-      setUsers((prevUsers) => prevUsers.filter((user)=>user.id !== id));
-    } else return;
+  function handleConfirmDelete(){
+    setUsers((prevUsers)=> prevUsers.filter((user)=> user.id !== deleteUser.id ));
+    setIsDeleteModalOpen(false);
+  }
+
+  function handleCancelDelete(){
+    setDeleteUser(null);
+    setIsDeleteModalOpen(false);
   }
 
   return (
     <div>
       <h1>Users</h1>
       <AddUserForm onAddUser={handleAddUser} />
+      {isDeleteModalOpen && <Modal onClose={handleCancelDelete} onConfirm={handleConfirmDelete}>
+        <h3>Delete User</h3>
+        <p>Are you sure you want to delete {deleteUser.name}?</p>
+        </Modal>}
 
       {editingUser && (
         <EditUserForm onSave={handleSaveUser} user={editingUser} />
