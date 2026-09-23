@@ -4,7 +4,14 @@ async function getUsers (){
         throw new Error("Failed to fetch users");
     }
     const users = await response.json();
-    return users;
+
+    const normalisedUsers = users.map((user)=>({
+        ...user,
+        status: "Active",
+        role: user.username
+    }));
+    
+    return normalisedUsers;
 }
 
 export { getUsers };

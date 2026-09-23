@@ -5,6 +5,8 @@ import { SelectedUser } from "../components/SelectedUser";
 import { UserTable } from "../components/UserTable";
 import { useState, useEffect } from "react";
 import { getUsers } from "../services/userService";
+import { PageHeader } from "../components/PageHeader";
+import { PageActions } from "../components/PageActions";
 function Users() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -13,6 +15,7 @@ function Users() {
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteUser, setDeleteUser] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [users, setUsers] = useState([]);
 
   const filteredUsers = users.filter((user) => {
@@ -36,7 +39,8 @@ function Users() {
       id: users.length + 1,
     };
 
-    setUsers((previousUsers) => [...previousUsers, userWithId]);
+    setUsers((previousUsers) => [...previousUsers, userWithId]); 
+    setIsAddUserModalOpen(false);
   }
 
   function handleEditUser(id) {
@@ -70,6 +74,11 @@ function Users() {
     setDeleteUser(null);
     setIsDeleteModalOpen(false);
   }
+
+  function handleAddUserModal(){
+    setIsAddUserModalOpen(true);
+  }
+
   useEffect(() => {
     async function loadUsers() {
       try {
@@ -87,8 +96,18 @@ function Users() {
 
   return (
     <div>
-      <h1>Users</h1>
-      <AddUserForm onAddUser={handleAddUser} />
+      <PageHeader title="Users" description="Manage and view registered users">
+        <PageActions>
+          <input
+            type="text"
+            placeholder="Search users..."
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+          />
+          <button type="button" onClick={handleAddUserModal}>Add User</button>
+        </PageActions>
+      </PageHeader>
+          {isAddUserModalOpen && <Modal onClose={()=> setIsAddUserModalOpen(false)}><AddUserForm onAddUser={handleAddUser} /></Modal>}
       {isDeleteModalOpen && (
         <Modal onClose={handleCancelDelete} onConfirm={handleConfirmDelete}>
           <h3>Delete User</h3>
@@ -99,12 +118,6 @@ function Users() {
       {editingUser && (
         <EditUserForm onSave={handleSaveUser} user={editingUser} />
       )}
-      <input
-        type="text"
-        placeholder="Search users..."
-        value={searchTerm}
-        onChange={(event) => setSearchTerm(event.target.value)}
-      />
       {loading ? (
         <p>Loading users...</p>
       ) : error ? (
