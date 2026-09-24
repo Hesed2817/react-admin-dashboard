@@ -3,28 +3,29 @@ import { EditUserForm } from "../components/EditUserForm";
 import { Modal } from "../components/Modal";
 import { SelectedUser } from "../components/SelectedUser";
 import { UserTable } from "../components/UserTable";
-import { useState, useEffect } from "react";
-import { getUsers } from "../services/userService";
+import { useState } from "react";
 import { PageHeader } from "../components/PageHeader";
 import { PageActions } from "../components/PageActions";
+import {useUsers } from "../hooks/useUsers"
 function Users() {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const {users, loading, error, setUsers } = useUsers();
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
   const [deleteUser, setDeleteUser] = useState(null);
+  const [statusFilter, setStatusFilter] = useState("All");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
-  const [users, setUsers] = useState([]);
+  
 
   const filteredUsers = users.filter((user) => {
     const search = searchTerm.trim().toLowerCase();
-
-    return (
-      user.name.toLowerCase().includes(search) ||
+    const matches = user.name.toLowerCase().includes(search) ||
       user.email.toLowerCase().includes(search) ||
-      user.role.toLowerCase().includes(search)
+      user.role.toLowerCase().includes(search);
+    const statusMatches = statusFilter === "All" || user.status === statusFilter;
+    return (
+      matches && statusMatches
     );
   });
   function handleViewUser(id) {
@@ -79,25 +80,15 @@ function Users() {
     setIsAddUserModalOpen(true);
   }
 
-  useEffect(() => {
-    async function loadUsers() {
-      try {
-        const loadedUsers = await getUsers();
-        setUsers(loadedUsers);
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadUsers();
-  }, []);
-
   return (
     <div>
       <PageHeader title="Users" description="Manage and view registered users">
         <PageActions>
+          <select name="filter-options" id="filter" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+            <option value="All">All</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
           <input
             type="text"
             placeholder="Search users..."
@@ -116,7 +107,10 @@ function Users() {
       )}
 
       {editingUser && (
+        <Modal onClose={()=> setEditingUser(null)}>
         <EditUserForm onSave={handleSaveUser} user={editingUser} />
+        </Modal>
+        
       )}
       {loading ? (
         <p>Loading users...</p>
