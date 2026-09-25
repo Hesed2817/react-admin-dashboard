@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { getUsers, deriveUserCreatedAt } from "../services/userService";
 import { getStoredUsers, saveUsers } from "../services/userStorage";
+import { useActivities } from "../hooks/useActivities";
 import { UsersContext } from "./UsersContext";
 
 function UsersProvider({ children }) {
+  const { recordActivity } = useActivities();
   const [users, setUsers] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -55,6 +57,12 @@ function UsersProvider({ children }) {
     };
 
     commitUsers([...users, userWithId]);
+    recordActivity({
+      type: "created",
+      message: `User "${userWithId.name}" created`,
+      entityType: "user",
+      entityId: userWithId.id,
+    });
   }
 
   function updateUser(updatedUser) {
@@ -63,18 +71,43 @@ function UsersProvider({ children }) {
         user.id === updatedUser.id ? { ...user, ...updatedUser } : user,
       ),
     );
+    recordActivity({
+      type: "updated",
+      message: `User "${updatedUser.name}" updated`,
+      entityType: "user",
+      entityId: updatedUser.id,
+    });
   }
 
   function deleteUser(id) {
+    const deletedUser = users.find((user) => user.id === id);
+
     commitUsers(users.filter((user) => user.id !== id));
+    recordActivity({
+      type: "deleted",
+      message: `User "${deletedUser ? deletedUser.name : id}" deleted`,
+      entityType: "user",
+      entityId: id,
+    });
   }
 
   function toggleFavorite(id) {
+    const toggledUser = users.find((user) => user.id === id);
+    const isNowFavorite = !(toggledUser && toggledUser.isFavorite);
+
     commitUsers(
       users.map((user) =>
         user.id === id ? { ...user, isFavorite: !user.isFavorite } : user,
       ),
     );
+    recordActivity({
+      type: isNowFavorite ? "favorited" : "unfavorited",
+      message: `User "${toggledUser ? toggledUser.name : id}" ${
+        isNowFavorite ? "favorited" : "unfavorited"
+      }`,
+      entityType: "user",
+      entityId: id,
+    });
   }
 
   return (

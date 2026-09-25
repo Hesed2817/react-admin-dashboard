@@ -5,8 +5,10 @@ import {
   savePatients,
 } from "../services/patientStorage";
 import { PatientsContext } from "./PatientsContext";
+import { useActivities } from "../hooks/useActivities";
 
 function PatientsProvider({ children }) {
+  const { recordActivity } = useActivities();
   const [patients, setPatients] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -53,6 +55,12 @@ function PatientsProvider({ children }) {
     };
 
     commitPatients([...patients, patientWithId]);
+    recordActivity({
+      type: "created",
+      message: `Patient "${patientWithId.name}" created`,
+      entityType: "patient",
+      entityId: patientWithId.id,
+    });
   }
 
   function updatePatient(updatedPatient) {
@@ -63,10 +71,24 @@ function PatientsProvider({ children }) {
           : patient,
       ),
     );
+    recordActivity({
+      type: "updated",
+      message: `Patient "${updatedPatient.name}" updated`,
+      entityType: "patient",
+      entityId: updatedPatient.id,
+    });
   }
 
   function deletePatient(id) {
+    const deletedPatient = patients.find((patient) => patient.id === id);
+
     commitPatients(patients.filter((patient) => patient.id !== id));
+    recordActivity({
+      type: "deleted",
+      message: `Patient "${deletedPatient ? deletedPatient.name : id}" deleted`,
+      entityType: "patient",
+      entityId: id,
+    });
   }
 
   return (

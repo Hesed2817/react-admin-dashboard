@@ -1,8 +1,10 @@
 import { StatCard } from "../components/StatCard";
 import { useUsers } from "../hooks/useUsers";
 import { usePatients } from "../hooks/usePatients";
+import { useActivities } from "../hooks/useActivities";
 
 const PENDING_REQUESTS = 18;
+const RECENT_ACTIVITY_LIMIT = 5;
 
 function Dashboard() {
   const {
@@ -15,6 +17,9 @@ function Dashboard() {
     loading: patientsLoading,
     error: patientsError,
   } = usePatients();
+  const { activities } = useActivities();
+
+  const recentActivities = activities.slice(0, RECENT_ACTIVITY_LIMIT);
 
   const loading = usersLoading || patientsLoading;
   const error = usersError || patientsError;
@@ -90,16 +95,34 @@ function Dashboard() {
       ) : isEmpty ? (
         <p>No data available.</p>
       ) : (
-        <div className="stats-grid">
-          {statistics.map(({ id, title, value, description }) => (
-            <StatCard
-              key={id}
-              title={title}
-              value={value}
-              description={description}
-            />
-          ))}
-        </div>
+        <>
+          <div className="stats-grid">
+            {statistics.map(({ id, title, value, description }) => (
+              <StatCard
+                key={id}
+                title={title}
+                value={value}
+                description={description}
+              />
+            ))}
+          </div>
+
+          <section>
+            <h2>Recent Activity</h2>
+            {recentActivities.length === 0 ? (
+              <p>No recent activity.</p>
+            ) : (
+              <ul>
+                {recentActivities.map((activity) => (
+                  <li key={activity.id}>
+                    {activity.message} —{" "}
+                    {new Date(activity.timestamp).toLocaleString()}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </>
       )}
     </>
   );

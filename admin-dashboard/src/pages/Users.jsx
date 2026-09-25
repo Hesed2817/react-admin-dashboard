@@ -11,13 +11,16 @@ function Users() {
   const { users, loading, error, addUser, updateUser, deleteUser, toggleFavorite } =
     useUsers();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUserId, setSelectedUserId] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
   const [userToDelete, setUserToDelete] = useState(null);
   const [statusFilter, setStatusFilter] = useState("All");
   const [favoriteFilter, setFavoriteFilter] = useState("All");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
+
+  const selectedUser =
+    users.find((user) => user.id === selectedUserId) || null;
 
   const filteredUsers = users.filter((user) => {
     const search = searchTerm.trim().toLowerCase();
@@ -34,9 +37,7 @@ function Users() {
     return matches && statusMatches && favoriteMatches ;
   });
   function handleViewUser(id) {
-    const user = users.find((user) => user.id === id);
-
-    setSelectedUser(user);
+    setSelectedUserId(id);
   }
 
   function handleAddUser(newUser) {
@@ -51,11 +52,6 @@ function Users() {
 
   function handleSaveUser(updatedUser) {
     updateUser(updatedUser);
-
-    if (selectedUser && selectedUser.id === updatedUser.id) {
-      setSelectedUser(updatedUser);
-    }
-
     setEditingUser(null);
   }
 
@@ -68,8 +64,8 @@ function Users() {
   function handleConfirmDelete() {
     deleteUser(userToDelete.id);
 
-    if (selectedUser && selectedUser.id === userToDelete.id) {
-      setSelectedUser(null);
+    if (selectedUserId === userToDelete.id) {
+      setSelectedUserId(null);
     }
 
     setUserToDelete(null);

@@ -13,11 +13,14 @@ function Patients() {
     usePatients();
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
-  const [selectedPatient, setSelectedPatient] = useState(null);
+  const [selectedPatientId, setSelectedPatientId] = useState(null);
   const [editingPatient, setEditingPatient] = useState(null);
   const [patientToDelete, setPatientToDelete] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false);
+
+  const selectedPatient =
+    patients.find((patient) => patient.id === selectedPatientId) || null;
 
   const filteredPatients = patients.filter((patient) => {
     const search = searchTerm.trim().toLowerCase();
@@ -32,8 +35,7 @@ function Patients() {
   });
 
   function handleViewPatient(id) {
-    const patient = patients.find((patient) => patient.id === id);
-    setSelectedPatient(patient);
+    setSelectedPatientId(id);
   }
 
   function handleAddPatient(newPatient) {
@@ -48,11 +50,6 @@ function Patients() {
 
   function handleSavePatient(updatedPatient) {
     updatePatient(updatedPatient);
-
-    if (selectedPatient && selectedPatient.id === updatedPatient.id) {
-      setSelectedPatient(updatedPatient);
-    }
-
     setEditingPatient(null);
   }
 
@@ -65,8 +62,8 @@ function Patients() {
   function handleConfirmDelete() {
     deletePatient(patientToDelete.id);
 
-    if (selectedPatient && selectedPatient.id === patientToDelete.id) {
-      setSelectedPatient(null);
+    if (selectedPatientId === patientToDelete.id) {
+      setSelectedPatientId(null);
     }
 
     setPatientToDelete(null);
