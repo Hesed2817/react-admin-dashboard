@@ -7,6 +7,12 @@ import { useState } from "react";
 import { PageHeader } from "../components/PageHeader";
 import { PageActions } from "../components/PageActions";
 import { useUsers } from "../hooks/useUsers";
+import { USER_STATUS_OPTIONS } from "../constants/statuses";
+
+const ALL_STATUSES = "All";
+const FAVORITES_FILTER = "Favorites";
+const NON_FAVORITES_FILTER = "Non-favorites";
+
 function Users() {
   const { users, loading, error, addUser, updateUser, deleteUser, toggleFavorite } =
     useUsers();
@@ -14,8 +20,8 @@ function Users() {
   const [selectedUserId, setSelectedUserId] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
   const [userToDelete, setUserToDelete] = useState(null);
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [favoriteFilter, setFavoriteFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState(ALL_STATUSES);
+  const [favoriteFilter, setFavoriteFilter] = useState(ALL_STATUSES);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
 
@@ -29,10 +35,13 @@ function Users() {
       user.email.toLowerCase().includes(search) ||
       user.role.toLowerCase().includes(search);
     const statusMatches =
-      statusFilter === "All" || user.status === statusFilter;
+      statusFilter === ALL_STATUSES || user.status === statusFilter;
     const favoriteMatches =
-      favoriteFilter === "All" ? true :
-      favoriteFilter === "Favorites" ? user.isFavorite === true : user.isFavorite === false;
+      favoriteFilter === ALL_STATUSES
+        ? true
+        : favoriteFilter === FAVORITES_FILTER
+          ? user.isFavorite === true
+          : user.isFavorite === false;
     
     return matches && statusMatches && favoriteMatches ;
   });
@@ -95,16 +104,19 @@ function Users() {
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value)}
           >
-            <option value="All">All</option>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>            
+            <option value={ALL_STATUSES}>All</option>
+            {USER_STATUS_OPTIONS.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
           </select>
 
           <select name="filter-favs" id="favorites" value={favoriteFilter}
             onChange={(event) => setFavoriteFilter(event.target.value)}>
-            <option value="All">All</option>
-            <option value="Favorites">Favorites</option>
-            <option value="Non-favorites">Non-favorites</option>
+            <option value={ALL_STATUSES}>All</option>
+            <option value={FAVORITES_FILTER}>Favorites</option>
+            <option value={NON_FAVORITES_FILTER}>Non-favorites</option>
           </select>
           <input
             type="text"

@@ -1,8 +1,14 @@
+import {
+  STATUS_ACTIVE,
+  STATUS_INACTIVE,
+  STATUS_PENDING,
+} from "../constants/statuses";
+
 function StatusBadge({ status }) {
   const statusClassNames = {
-    Active: "status-badge status-active",
-    Inactive: "status-badge status-inactive",
-    Pending: "status-badge status-pending",
+    [STATUS_ACTIVE]: "status-badge status-active",
+    [STATUS_INACTIVE]: "status-badge status-inactive",
+    [STATUS_PENDING]: "status-badge status-pending",
   };
 
   const className =

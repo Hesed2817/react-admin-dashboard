@@ -2,8 +2,12 @@ import { StatCard } from "../components/StatCard";
 import { useUsers } from "../hooks/useUsers";
 import { usePatients } from "../hooks/usePatients";
 import { useActivities } from "../hooks/useActivities";
+import {
+  STATUS_ACTIVE,
+  STATUS_INACTIVE,
+  STATUS_PENDING,
+} from "../constants/statuses";
 
-const PENDING_REQUESTS = 18;
 const RECENT_ACTIVITY_LIMIT = 5;
 
 function Dashboard() {
@@ -35,13 +39,13 @@ function Dashboard() {
     {
       id: 2,
       title: "Active Users",
-      value: users.filter((user) => user.status === "Active").length,
+      value: users.filter((user) => user.status === STATUS_ACTIVE).length,
       description: "Currently active",
     },
     {
       id: 3,
       title: "Inactive Users",
-      value: users.filter((user) => user.status === "Inactive").length,
+      value: users.filter((user) => user.status === STATUS_INACTIVE).length,
       description: "Currently inactive",
     },
     {
@@ -52,33 +56,29 @@ function Dashboard() {
     },
     {
       id: 5,
-      title: "Pending Requests",
-      value: PENDING_REQUESTS,
-      description: "Awaiting review",
-    },
-    {
-      id: 6,
       title: "Total Patients",
       value: patients.length,
       description: "Registered patients",
     },
     {
-      id: 7,
+      id: 6,
       title: "Active Patients",
-      value: patients.filter((patient) => patient.status === "Active").length,
+      value: patients.filter((patient) => patient.status === STATUS_ACTIVE)
+        .length,
       description: "Currently active",
     },
     {
-      id: 8,
+      id: 7,
       title: "Inactive Patients",
-      value: patients.filter((patient) => patient.status === "Inactive")
+      value: patients.filter((patient) => patient.status === STATUS_INACTIVE)
         .length,
       description: "Currently inactive",
     },
     {
-      id: 9,
+      id: 8,
       title: "Pending Patients",
-      value: patients.filter((patient) => patient.status === "Pending").length,
+      value: patients.filter((patient) => patient.status === STATUS_PENDING)
+        .length,
       description: "Awaiting review",
     },
   ];

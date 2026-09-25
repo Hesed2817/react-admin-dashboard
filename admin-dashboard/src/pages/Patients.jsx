@@ -7,12 +7,15 @@ import { PageHeader } from "../components/PageHeader";
 import { PatientTable } from "../components/PatientTable";
 import { SelectedPatient } from "../components/SelectedPatient";
 import { usePatients } from "../hooks/usePatients";
+import { PATIENT_STATUS_OPTIONS } from "../constants/statuses";
+
+const ALL_STATUSES = "All";
 
 function Patients() {
   const { patients, loading, error, addPatient, updatePatient, deletePatient } =
     usePatients();
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState(ALL_STATUSES);
   const [selectedPatientId, setSelectedPatientId] = useState(null);
   const [editingPatient, setEditingPatient] = useState(null);
   const [patientToDelete, setPatientToDelete] = useState(null);
@@ -29,7 +32,7 @@ function Patients() {
       patient.email.toLowerCase().includes(search) ||
       patient.phone.toLowerCase().includes(search);
     const statusMatches =
-      statusFilter === "All" || patient.status === statusFilter;
+      statusFilter === ALL_STATUSES || patient.status === statusFilter;
 
     return matches && statusMatches;
   });
@@ -92,10 +95,12 @@ function Patients() {
             value={statusFilter}
             onChange={(event) => setStatusFilter(event.target.value)}
           >
-            <option value="All">All</option>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-            <option value="Pending">Pending</option>
+            <option value={ALL_STATUSES}>All</option>
+            {PATIENT_STATUS_OPTIONS.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
           </select>
 
           <input

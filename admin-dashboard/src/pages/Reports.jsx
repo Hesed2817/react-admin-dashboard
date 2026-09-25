@@ -2,37 +2,18 @@ import { useState } from "react";
 import { PageActions } from "../components/PageActions";
 import { PageHeader } from "../components/PageHeader";
 import { StatCard } from "../components/StatCard";
+import { TrendTable } from "../components/TrendTable";
 import { usePatients } from "../hooks/usePatients";
 import { useUsers } from "../hooks/useUsers";
 import { buildPatientReport, buildUserReport } from "../utils/reports";
+import {
+  STATUS_ACTIVE,
+  STATUS_INACTIVE,
+  STATUS_PENDING,
+} from "../constants/statuses";
 
-function TrendTable({ title, trend }) {
-  return (
-    <div>
-      <h3>{title}</h3>
-      {trend.length === 0 ? (
-        <p>No registrations for the selected filters.</p>
-      ) : (
-        <table className="user-table">
-          <thead>
-            <tr>
-              <th>Month</th>
-              <th>New</th>
-            </tr>
-          </thead>
-          <tbody>
-            {trend.map(({ month, label, value }) => (
-              <tr key={month}>
-                <td>{label}</td>
-                <td>{value}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
-    </div>
-  );
-}
+const ALL_CATEGORIES = "All";
+const FAVORITE_CATEGORY = "Favorites";
 
 function Reports() {
   const {
@@ -47,8 +28,8 @@ function Reports() {
   } = usePatients();
 
   const [period, setPeriod] = useState("all");
-  const [userCategory, setUserCategory] = useState("All");
-  const [patientCategory, setPatientCategory] = useState("All");
+  const [userCategory, setUserCategory] = useState(ALL_CATEGORIES);
+  const [patientCategory, setPatientCategory] = useState(ALL_CATEGORIES);
 
   const loading = usersLoading || patientsLoading;
   const error = usersError || patientsError;
@@ -153,10 +134,10 @@ function Reports() {
               value={userCategory}
               onChange={(event) => setUserCategory(event.target.value)}
             >
-              <option value="All">All</option>
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-              <option value="Favorites">Favorites</option>
+              <option value={ALL_CATEGORIES}>All</option>
+              <option value={STATUS_ACTIVE}>Active</option>
+              <option value={STATUS_INACTIVE}>Inactive</option>
+              <option value={FAVORITE_CATEGORY}>Favorites</option>
             </select>
 
             <div className="stats-grid">
@@ -184,10 +165,10 @@ function Reports() {
               value={patientCategory}
               onChange={(event) => setPatientCategory(event.target.value)}
             >
-              <option value="All">All</option>
-              <option value="Active">Active</option>
-              <option value="Inactive">Inactive</option>
-              <option value="Pending">Pending</option>
+              <option value={ALL_CATEGORIES}>All</option>
+              <option value={STATUS_ACTIVE}>Active</option>
+              <option value={STATUS_INACTIVE}>Inactive</option>
+              <option value={STATUS_PENDING}>Pending</option>
             </select>
 
             <div className="stats-grid">

@@ -1,3 +1,12 @@
+import {
+  STATUS_ACTIVE,
+  STATUS_INACTIVE,
+  STATUS_PENDING,
+} from "../constants/statuses";
+
+const ALL_CATEGORIES = "All";
+const FAVORITE_CATEGORY = "Favorites";
+
 const MONTH_NAMES = [
   "Jan",
   "Feb",
@@ -47,7 +56,7 @@ function filterByPeriod(items, getDate, period) {
 }
 
 function filterByCategory(items, category, predicateFor) {
-  if (!category || category === "All") {
+  if (!category || category === ALL_CATEGORIES) {
     return items;
   }
 
@@ -90,18 +99,21 @@ function groupByMonth(items, getDate) {
     }));
 }
 
-function buildUserReport(users, { period = "all", category = "All" } = {}) {
+function buildUserReport(
+  users,
+  { period = "all", category = ALL_CATEGORIES } = {},
+) {
   const scopedUsers = filterByPeriod(users, (user) => user.createdAt, period);
   const reportUsers = filterByCategory(scopedUsers, category, (value) =>
-    value === "Favorites"
+    value === FAVORITE_CATEGORY
       ? (user) => user.isFavorite === true
       : (user) => user.status === value,
   );
 
   return {
     total: reportUsers.length,
-    active: countBy(reportUsers, (user) => user.status === "Active"),
-    inactive: countBy(reportUsers, (user) => user.status === "Inactive"),
+    active: countBy(reportUsers, (user) => user.status === STATUS_ACTIVE),
+    inactive: countBy(reportUsers, (user) => user.status === STATUS_INACTIVE),
     favorite: countBy(reportUsers, (user) => user.isFavorite === true),
     createdOverTime: groupByMonth(reportUsers, (user) => user.createdAt),
   };
@@ -109,7 +121,7 @@ function buildUserReport(users, { period = "all", category = "All" } = {}) {
 
 function buildPatientReport(
   patients,
-  { period = "all", category = "All" } = {},
+  { period = "all", category = ALL_CATEGORIES } = {},
 ) {
   const scopedPatients = filterByPeriod(
     patients,
@@ -124,12 +136,18 @@ function buildPatientReport(
 
   return {
     total: reportPatients.length,
-    active: countBy(reportPatients, (patient) => patient.status === "Active"),
+    active: countBy(
+      reportPatients,
+      (patient) => patient.status === STATUS_ACTIVE,
+    ),
     inactive: countBy(
       reportPatients,
-      (patient) => patient.status === "Inactive",
+      (patient) => patient.status === STATUS_INACTIVE,
     ),
-    pending: countBy(reportPatients, (patient) => patient.status === "Pending"),
+    pending: countBy(
+      reportPatients,
+      (patient) => patient.status === STATUS_PENDING,
+    ),
     createdOverTime: groupByMonth(
       reportPatients,
       (patient) => patient.createdAt,

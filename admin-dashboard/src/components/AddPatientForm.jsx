@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { isValidEmail, isValidPhone } from "../utils/validation";
+import { isValidDateOfBirth } from "../utils/patients";
+import { PATIENT_STATUS_OPTIONS, STATUS_PENDING } from "../constants/statuses";
 
 function AddPatientForm({ onAddPatient }) {
   const [name, setName] = useState("");
-  const [age, setAge] = useState("");
+  const [dateOfBirth, setDateOfBirth] = useState("");
   const [gender, setGender] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState("Pending");
+  const [status, setStatus] = useState(STATUS_PENDING);
   const [errors, setErrors] = useState({});
 
   function validate(values) {
@@ -17,14 +19,12 @@ function AddPatientForm({ onAddPatient }) {
       nextErrors.name = "Name is required";
     }
 
-    if (!values.age) {
-      nextErrors.age = "Age is required";
-    } else if (
-      !Number.isFinite(Number(values.age)) ||
-      Number(values.age) < 0 ||
-      Number(values.age) > 120
-    ) {
-      nextErrors.age = "Enter an age between 0 and 120";
+    if (!values.dateOfBirth) {
+      nextErrors.dateOfBirth = "Date of birth is required";
+    } else if (!isValidDateOfBirth(values.dateOfBirth)) {
+      nextErrors.dateOfBirth = "Enter a valid date of birth";
+    } else if (new Date(values.dateOfBirth) > new Date()) {
+      nextErrors.dateOfBirth = "Date of birth cannot be in the future";
     }
 
     if (!values.gender) {
@@ -65,14 +65,14 @@ function AddPatientForm({ onAddPatient }) {
 
     const values = {
       name: name.trim(),
-      age: Number(age),
+      dateOfBirth,
       gender,
       phone: phone.trim(),
       email: email.trim(),
       status,
     };
 
-    const nextErrors = validate({ ...values, age });
+    const nextErrors = validate(values);
 
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
@@ -81,7 +81,6 @@ function AddPatientForm({ onAddPatient }) {
 
     onAddPatient({
       ...values,
-      dateOfBirth: "",
       lastVisit: "",
     });
   };
@@ -97,12 +96,12 @@ function AddPatientForm({ onAddPatient }) {
       {errors.name && <p>{errors.name}</p>}
 
       <input
-        type="number"
-        placeholder="Age"
-        value={age}
-        onChange={handleChange(setAge, "age")}
+        type="date"
+        placeholder="Date of birth"
+        value={dateOfBirth}
+        onChange={handleChange(setDateOfBirth, "dateOfBirth")}
       />
-      {errors.age && <p>{errors.age}</p>}
+      {errors.dateOfBirth && <p>{errors.dateOfBirth}</p>}
 
       <select value={gender} onChange={handleChange(setGender, "gender")}>
         <option value="">Select gender</option>
@@ -129,9 +128,11 @@ function AddPatientForm({ onAddPatient }) {
       {errors.email && <p>{errors.email}</p>}
 
       <select value={status} onChange={handleChange(setStatus, "status")}>
-        <option value="Active">Active</option>
-        <option value="Inactive">Inactive</option>
-        <option value="Pending">Pending</option>
+        {PATIENT_STATUS_OPTIONS.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
       </select>
       {errors.status && <p>{errors.status}</p>}
 

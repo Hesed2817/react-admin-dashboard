@@ -1,7 +1,8 @@
+import { calculateAge } from "../utils/patients";
+
 function SelectedPatient({
   patient: {
     name,
-    age,
     gender,
     phone,
     email,
@@ -11,13 +12,15 @@ function SelectedPatient({
     createdAt,
   },
 }) {
+  const age = calculateAge(dateOfBirth);
+
   return (
     <div className="selected-user">
       <h2>Selected Patient</h2>
       <p>Name: {name}</p>
       <p>Email: {email}</p>
       <p>Phone: {phone}</p>
-      <p>Age: {age}</p>
+      <p>Age: {age === null ? "—" : age}</p>
       <p>Gender: {gender}</p>
       <p>Status: {status}</p>
       <p>Date of Birth: {dateOfBirth || "—"}</p>

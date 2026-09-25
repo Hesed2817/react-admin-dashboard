@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   getStoredActivities,
   saveActivities,
+  appendActivity,
 } from "../services/activityStorage";
 import { ActivityContext } from "./ActivityContext";
 
@@ -12,15 +13,12 @@ function ActivityProvider({ children }) {
     () => getStoredActivities() || [],
   );
 
-  function recordActivity({ type, message, entityType, entityId }) {
-    const nextId =
-      activities.reduce(
-        (maxId, activity) => Math.max(maxId, Number(activity.id) || 0),
-        0,
-      ) + 1;
+  useEffect(() => {
+    saveActivities(activities);
+  }, [activities]);
 
+  function recordActivity({ type, message, entityType, entityId }) {
     const activity = {
-      id: nextId,
       type,
       message,
       timestamp: new Date().toISOString(),
@@ -28,15 +26,13 @@ function ActivityProvider({ children }) {
       entityId,
     };
 
-    const nextActivities = [activity, ...activities].slice(0, MAX_ACTIVITIES);
-
-    setActivities(nextActivities);
-    saveActivities(nextActivities);
+    setActivities((previousActivities) =>
+      appendActivity(previousActivities, activity, MAX_ACTIVITIES),
+    );
   }
 
   function clearActivities() {
     setActivities([]);
-    saveActivities([]);
   }
 
   return (

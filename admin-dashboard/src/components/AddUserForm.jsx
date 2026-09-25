@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { isValidEmail } from "../utils/validation";
+import { STATUS_ACTIVE } from "../constants/statuses";
 
 function AddUserForm({ onAddUser }) {
   const [name, setName] = useState("");
@@ -50,7 +51,7 @@ function AddUserForm({ onAddUser }) {
       return;
     }
 
-    onAddUser({ ...values, status: "Active" });
+    onAddUser({ ...values, status: STATUS_ACTIVE });
   };
 
   return (

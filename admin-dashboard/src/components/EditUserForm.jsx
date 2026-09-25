@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { USER_STATUS_OPTIONS } from "../constants/statuses";
 
 function EditUserForm({ user, onSave }) {
   const [editedName, setEditedName] = useState(user.name);
@@ -45,8 +46,11 @@ function EditUserForm({ user, onSave }) {
         value={editedStatus}
         onChange={(event) => setEditedStatus(event.target.value)}
       >
-        <option value="Active">Active</option>
-        <option value="Inactive">Inactive</option>
+        {USER_STATUS_OPTIONS.map((status) => (
+          <option key={status} value={status}>
+            {status}
+          </option>
+        ))}
       </select>
       <button type="submit">Save Changes</button>
     </form>

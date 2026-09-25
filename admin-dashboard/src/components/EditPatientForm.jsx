@@ -1,9 +1,11 @@
 import { useState } from "react";
 import { isValidEmail, isValidPhone } from "../utils/validation";
+import { isValidDateOfBirth } from "../utils/patients";
+import { PATIENT_STATUS_OPTIONS } from "../constants/statuses";
 
 function EditPatientForm({ patient, onSave }) {
   const [editedName, setEditedName] = useState(patient.name);
-  const [editedAge, setEditedAge] = useState(String(patient.age));
+  const [editedDateOfBirth, setEditedDateOfBirth] = useState(patient.dateOfBirth);
   const [editedGender, setEditedGender] = useState(patient.gender);
   const [editedPhone, setEditedPhone] = useState(patient.phone);
   const [editedEmail, setEditedEmail] = useState(patient.email);
@@ -17,14 +19,12 @@ function EditPatientForm({ patient, onSave }) {
       nextErrors.name = "Name is required";
     }
 
-    if (!values.age) {
-      nextErrors.age = "Age is required";
-    } else if (
-      !Number.isFinite(Number(values.age)) ||
-      Number(values.age) < 0 ||
-      Number(values.age) > 120
-    ) {
-      nextErrors.age = "Enter an age between 0 and 120";
+    if (!values.dateOfBirth) {
+      nextErrors.dateOfBirth = "Date of birth is required";
+    } else if (!isValidDateOfBirth(values.dateOfBirth)) {
+      nextErrors.dateOfBirth = "Enter a valid date of birth";
+    } else if (new Date(values.dateOfBirth) > new Date()) {
+      nextErrors.dateOfBirth = "Date of birth cannot be in the future";
     }
 
     if (!values.gender) {
@@ -51,7 +51,7 @@ function EditPatientForm({ patient, onSave }) {
 
     const values = {
       name: editedName.trim(),
-      age: editedAge,
+      dateOfBirth: editedDateOfBirth,
       gender: editedGender,
       phone: editedPhone.trim(),
       email: editedEmail.trim(),
@@ -68,7 +68,6 @@ function EditPatientForm({ patient, onSave }) {
     onSave({
       ...patient,
       ...values,
-      age: Number(values.age),
     });
   }
 
@@ -82,11 +81,11 @@ function EditPatientForm({ patient, onSave }) {
       {errors.name && <p>{errors.name}</p>}
 
       <input
-        type="number"
-        value={editedAge}
-        onChange={(event) => setEditedAge(event.target.value)}
+        type="date"
+        value={editedDateOfBirth}
+        onChange={(event) => setEditedDateOfBirth(event.target.value)}
       />
-      {errors.age && <p>{errors.age}</p>}
+      {errors.dateOfBirth && <p>{errors.dateOfBirth}</p>}
 
       <select
         value={editedGender}
@@ -116,9 +115,11 @@ function EditPatientForm({ patient, onSave }) {
         value={editedStatus}
         onChange={(event) => setEditedStatus(event.target.value)}
       >
-        <option value="Active">Active</option>
-        <option value="Inactive">Inactive</option>
-        <option value="Pending">Pending</option>
+        {PATIENT_STATUS_OPTIONS.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
       </select>
 
       <button type="submit">Save Changes</button>

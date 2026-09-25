@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   DEFAULT_SETTINGS,
   getStoredSettings,
   saveSettings,
+  mergeSettings,
 } from "../services/settingsStorage";
 import { SettingsContext } from "./SettingsContext";
 
@@ -11,29 +12,18 @@ function SettingsProvider({ children }) {
     () => getStoredSettings() || DEFAULT_SETTINGS,
   );
 
-  function updateSettings(partialSettings) {
-    const nextSettings = {
-      profile: {
-        ...settings.profile,
-        ...(partialSettings.profile || {}),
-      },
-      notifications: {
-        ...settings.notifications,
-        ...(partialSettings.notifications || {}),
-      },
-      appearance: {
-        ...settings.appearance,
-        ...(partialSettings.appearance || {}),
-      },
-    };
+  useEffect(() => {
+    saveSettings(settings);
+  }, [settings]);
 
-    setSettings(nextSettings);
-    saveSettings(nextSettings);
+  function updateSettings(partialSettings) {
+    setSettings((previousSettings) =>
+      mergeSettings(previousSettings, partialSettings),
+    );
   }
 
   function resetSettings() {
     setSettings(DEFAULT_SETTINGS);
-    saveSettings(DEFAULT_SETTINGS);
   }
 
   return (

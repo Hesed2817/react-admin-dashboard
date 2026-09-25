@@ -1,4 +1,5 @@
 import { StatusBadge } from "./StatusBadge";
+import { calculateAge } from "../utils/patients";
 
 function PatientTable({
   patients,
@@ -21,12 +22,12 @@ function PatientTable({
       </thead>
       <tbody>
         {patients.map(
-          ({ id, name, email, phone, age, gender, status }) => (
+          ({ id, name, email, phone, dateOfBirth, gender, status }) => (
             <tr key={id}>
               <td>{name}</td>
               <td>{email}</td>
               <td>{phone}</td>
-              <td>{age}</td>
+              <td>{calculateAge(dateOfBirth) ?? "—"}</td>
               <td>{gender}</td>
               <td>
                 <StatusBadge status={status} />
