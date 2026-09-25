@@ -1,6 +1,5 @@
 import { useState } from "react";
-
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import { isValidEmail } from "../utils/validation";
 
 function AddUserForm({ onAddUser }) {
   const [name, setName] = useState("");
@@ -17,7 +16,7 @@ function AddUserForm({ onAddUser }) {
 
     if (!values.email) {
       nextErrors.email = "Email is required";
-    } else if (!EMAIL_PATTERN.test(values.email)) {
+    } else if (!isValidEmail(values.email)) {
       nextErrors.email = "Enter a valid email address";
     }
 
