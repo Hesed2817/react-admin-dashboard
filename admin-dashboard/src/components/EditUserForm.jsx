@@ -1,23 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 function EditUserForm({ user, onSave }) {
-  const [editedName, setEditedName] = useState("");
-  const [editedEmail, setEditedEmail] = useState("");
-  const [editedRole, setEditedRole] = useState("");
-
-  useEffect(() => {
-    setEditedName(user.name);
-    setEditedRole(user.role);
-    setEditedEmail(user.email);
-  }, [user]);
+  const [editedName, setEditedName] = useState(user.name);
+  const [editedEmail, setEditedEmail] = useState(user.email);
+  const [editedRole, setEditedRole] = useState(user.role);
+  const [editedStatus, setEditedStatus] = useState(user.status);
 
   function handleSaveUser(event) {
     event.preventDefault();
     const updatedUser = {
       ...user,
-      name: editedName,
-      email: editedEmail,
-      role: editedRole,
+      name: editedName.trim(),
+      email: editedEmail.trim(),
+      role: editedRole.trim(),
+      status: editedStatus,
     };
     onSave(updatedUser);
   }
@@ -45,6 +41,13 @@ function EditUserForm({ user, onSave }) {
         value={editedRole}
         onChange={(event) => setEditedRole(event.target.value)}
       />
+      <select
+        value={editedStatus}
+        onChange={(event) => setEditedStatus(event.target.value)}
+      >
+        <option value="Active">Active</option>
+        <option value="Inactive">Inactive</option>
+      </select>
       <button type="submit">Save Changes</button>
     </form>
   );

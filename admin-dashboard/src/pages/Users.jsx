@@ -8,11 +8,12 @@ import { PageHeader } from "../components/PageHeader";
 import { PageActions } from "../components/PageActions";
 import { useUsers } from "../hooks/useUsers";
 function Users() {
-  const { users, loading, error, setUsers } = useUsers();
+  const { users, loading, error, addUser, updateUser, deleteUser, toggleFavorite } =
+    useUsers();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
-  const [deleteUser, setDeleteUser] = useState(null);
+  const [userToDelete, setUserToDelete] = useState(null);
   const [statusFilter, setStatusFilter] = useState("All");
   const [favoriteFilter, setFavoriteFilter] = useState("All");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -39,12 +40,7 @@ function Users() {
   }
 
   function handleAddUser(newUser) {
-    const userWithId = {
-      ...newUser,
-      id: users.length + 1,
-    };
-
-    setUsers((previousUsers) => [...previousUsers, userWithId]);
+    addUser(newUser);
     setIsAddUserModalOpen(false);
   }
 
@@ -52,31 +48,36 @@ function Users() {
     const editingUser = users.find((user) => user.id === id);
     setEditingUser(editingUser);
   }
-false
+
   function handleSaveUser(updatedUser) {
-    setUsers((prevUsers) =>
-      prevUsers.map((user) =>
-        user.id === updatedUser.id ? updatedUser : user,
-      ),
-    );
+    updateUser(updatedUser);
+
+    if (selectedUser && selectedUser.id === updatedUser.id) {
+      setSelectedUser(updatedUser);
+    }
+
     setEditingUser(null);
   }
 
   function handleDeleteUser(id) {
     const user = users.find((user) => user.id === id);
-    setDeleteUser(user);
+    setUserToDelete(user);
     setIsDeleteModalOpen(true);
   }
 
   function handleConfirmDelete() {
-    setUsers((prevUsers) =>
-      prevUsers.filter((user) => user.id !== deleteUser.id),
-    );
+    deleteUser(userToDelete.id);
+
+    if (selectedUser && selectedUser.id === userToDelete.id) {
+      setSelectedUser(null);
+    }
+
+    setUserToDelete(null);
     setIsDeleteModalOpen(false);
   }
 
   function handleCancelDelete() {
-    setDeleteUser(null);
+    setUserToDelete(null);
     setIsDeleteModalOpen(false);
   }
 
@@ -85,18 +86,7 @@ false
   }
 
   function handleToggleFavorites(id) {
-    const newUsers = users.map((u) => {
-      if (u.id === id) {
-        return {
-          ...u,
-          isFavorite: !u.isFavorite,
-        };
-      } else {
-        return u;
-      }
-    });
-
-    setUsers(newUsers);
+    toggleFavorite(id);
   }
 
   return (
@@ -139,13 +129,17 @@ false
       {isDeleteModalOpen && (
         <Modal onClose={handleCancelDelete} onConfirm={handleConfirmDelete}>
           <h3>Delete User</h3>
-          <p>Are you sure you want to delete {deleteUser.name}?</p>
+          <p>Are you sure you want to delete {userToDelete.name}?</p>
         </Modal>
       )}
 
       {editingUser && (
         <Modal onClose={() => setEditingUser(null)}>
-          <EditUserForm onSave={handleSaveUser} user={editingUser} />
+          <EditUserForm
+            key={editingUser.id}
+            onSave={handleSaveUser}
+            user={editingUser}
+          />
         </Modal>
       )}
       {loading ? (
