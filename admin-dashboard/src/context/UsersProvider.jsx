@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { getUsers } from "../services/userService";
+import { getUsers, deriveUserCreatedAt } from "../services/userService";
 import { getStoredUsers, saveUsers } from "../services/userStorage";
 import { UsersContext } from "./UsersContext";
 
@@ -14,7 +14,13 @@ function UsersProvider({ children }) {
         const storedUsers = getStoredUsers();
 
         if (storedUsers) {
-          setUsers(storedUsers);
+          const migratedUsers = storedUsers.map((user) =>
+            user.createdAt
+              ? user
+              : { ...user, createdAt: deriveUserCreatedAt(user.id) },
+          );
+          setUsers(migratedUsers);
+          saveUsers(migratedUsers);
           return;
         }
 
@@ -45,6 +51,7 @@ function UsersProvider({ children }) {
       ...newUser,
       id: nextId,
       isFavorite: false,
+      createdAt: new Date().toISOString(),
     };
 
     commitUsers([...users, userWithId]);
