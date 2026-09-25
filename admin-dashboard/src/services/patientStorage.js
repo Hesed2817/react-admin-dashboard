@@ -30,6 +30,8 @@ const patientMigrations = {
 };
 
 const { getStoredItems: getStoredPatients, saveItems: savePatients } =
-  createStorage(STORAGE_KEY, isValidPatient, patientMigrations);
+  createStorage(STORAGE_KEY, isValidPatient, patientMigrations, {
+    discardInvalidItems: true,
+  });
 
 export { getStoredPatients, savePatients };

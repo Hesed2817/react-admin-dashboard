@@ -3,7 +3,12 @@ import {
   LEGACY_STORAGE_SCHEMA_VERSION,
 } from "../constants/storage";
 
-function createStorage(storageKey, isValidItem, migrations = {}) {
+function createStorage(
+  storageKey,
+  isValidItem,
+  migrations = {},
+  { discardInvalidItems = false } = {},
+) {
   const migrationSteps = {
     [LEGACY_STORAGE_SCHEMA_VERSION]: (data) => data,
     ...migrations,
@@ -67,16 +72,43 @@ function createStorage(storageKey, isValidItem, migrations = {}) {
 
       const items = migrate(envelope);
 
-      if (!Array.isArray(items) || !items.every(isValidItem)) {
+      if (!Array.isArray(items)) {
         localStorage.removeItem(storageKey);
         return null;
       }
 
-      if (envelope.version !== STORAGE_SCHEMA_VERSION) {
-        saveItems(items);
+      const validItems = discardInvalidItems
+        ? items.filter(isValidItem)
+        : items.every(isValidItem)
+          ? items
+          : null;
+
+      if (validItems === null) {
+        localStorage.removeItem(storageKey);
+        return null;
       }
 
-      return items;
+      const discardedCount = items.length - validItems.length;
+
+      if (discardedCount > 0 && Boolean(import.meta.env?.DEV)) {
+        console.warn(
+          `Discarded ${discardedCount} invalid record(s) from "${storageKey}".`,
+        );
+      }
+
+      if (items.length > 0 && validItems.length === 0) {
+        localStorage.removeItem(storageKey);
+        return null;
+      }
+
+      if (
+        discardedCount > 0 ||
+        envelope.version !== STORAGE_SCHEMA_VERSION
+      ) {
+        saveItems(validItems);
+      }
+
+      return validItems;
     } catch {
       localStorage.removeItem(storageKey);
       return null;
