@@ -1,8 +1,12 @@
 function StatusBadge({ status }) {
+  const statusClassNames = {
+    Active: "status-badge status-active",
+    Inactive: "status-badge status-inactive",
+    Pending: "status-badge status-pending",
+  };
+
   const className =
-    status === "Active"
-      ? "status-badge status-active"
-      : "status-badge status-inactive";
+    statusClassNames[status] || "status-badge status-inactive";
 
   return <span className={className}>{status}</span>;
 }

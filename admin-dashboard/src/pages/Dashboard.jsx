@@ -1,10 +1,24 @@
 import { StatCard } from "../components/StatCard";
 import { useUsers } from "../hooks/useUsers";
+import { usePatients } from "../hooks/usePatients";
 
 const PENDING_REQUESTS = 18;
 
 function Dashboard() {
-  const { users, loading, error } = useUsers();
+  const {
+    users,
+    loading: usersLoading,
+    error: usersError,
+  } = useUsers();
+  const {
+    patients,
+    loading: patientsLoading,
+    error: patientsError,
+  } = usePatients();
+
+  const loading = usersLoading || patientsLoading;
+  const error = usersError || patientsError;
+  const isEmpty = users.length === 0 && patients.length === 0;
 
   const statistics = [
     {
@@ -37,6 +51,31 @@ function Dashboard() {
       value: PENDING_REQUESTS,
       description: "Awaiting review",
     },
+    {
+      id: 6,
+      title: "Total Patients",
+      value: patients.length,
+      description: "Registered patients",
+    },
+    {
+      id: 7,
+      title: "Active Patients",
+      value: patients.filter((patient) => patient.status === "Active").length,
+      description: "Currently active",
+    },
+    {
+      id: 8,
+      title: "Inactive Patients",
+      value: patients.filter((patient) => patient.status === "Inactive")
+        .length,
+      description: "Currently inactive",
+    },
+    {
+      id: 9,
+      title: "Pending Patients",
+      value: patients.filter((patient) => patient.status === "Pending").length,
+      description: "Awaiting review",
+    },
   ];
 
   return (
@@ -48,8 +87,8 @@ function Dashboard() {
         <p>Loading statistics...</p>
       ) : error ? (
         <p>{error}</p>
-      ) : users.length === 0 ? (
-        <p>No users available.</p>
+      ) : isEmpty ? (
+        <p>No data available.</p>
       ) : (
         <div className="stats-grid">
           {statistics.map(({ id, title, value, description }) => (

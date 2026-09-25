@@ -1,3 +1,5 @@
+import { createStorage } from "./resourceStorage";
+
 const STORAGE_KEY = "admin-dashboard.users";
 
 function isValidUser(user) {
@@ -13,34 +15,9 @@ function isValidUser(user) {
   );
 }
 
-function getStoredUsers() {
-  try {
-    const rawUsers = localStorage.getItem(STORAGE_KEY);
-
-    if (!rawUsers) {
-      return null;
-    }
-
-    const parsedUsers = JSON.parse(rawUsers);
-
-    if (!Array.isArray(parsedUsers) || !parsedUsers.every(isValidUser)) {
-      localStorage.removeItem(STORAGE_KEY);
-      return null;
-    }
-
-    return parsedUsers;
-  } catch {
-    localStorage.removeItem(STORAGE_KEY);
-    return null;
-  }
-}
-
-function saveUsers(users) {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
-  } catch {
-    return;
-  }
-}
+const { getStoredItems: getStoredUsers, saveItems: saveUsers } = createStorage(
+  STORAGE_KEY,
+  isValidUser,
+);
 
 export { getStoredUsers, saveUsers };
