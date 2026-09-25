@@ -1,32 +1,14 @@
-import { useState, useEffect } from "react";
-import { getUsers } from "../services/userService";
+import { useContext } from "react";
+import { UsersContext } from "../context/UsersContext";
 
-function useUsers (){
-    const [users, setUsers] = useState([]);
-    const [error, setError] = useState(null);
-    const [loading, setLoading] = useState(true);
+function useUsers() {
+  const context = useContext(UsersContext);
 
-      useEffect(() => {
-    async function loadUsers() {
-      try {
-        const loadedUsers = await getUsers();
-        setUsers(loadedUsers);
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    }
+  if (!context) {
+    throw new Error("useUsers must be used within a UsersProvider");
+  }
 
-    loadUsers();
-  }, []);
-
-  return ({
-    users,
-    error,
-    loading,
-    setUsers
-  });
+  return context;
 }
 
-export {useUsers};
+export { useUsers };
