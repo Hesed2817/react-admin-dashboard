@@ -8,9 +8,10 @@ async function getUsers (){
     const normalisedUsers = users.map((user)=>({
         ...user,
         status: "Active",
-        role: user.username
+        role: user.username,
+        isFavorite: false
     }));
-    
+
     return normalisedUsers;
 }
 

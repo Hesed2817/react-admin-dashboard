@@ -6,27 +6,31 @@ import { UserTable } from "../components/UserTable";
 import { useState } from "react";
 import { PageHeader } from "../components/PageHeader";
 import { PageActions } from "../components/PageActions";
-import {useUsers } from "../hooks/useUsers"
+import { useUsers } from "../hooks/useUsers";
 function Users() {
-  const {users, loading, error, setUsers } = useUsers();
+  const { users, loading, error, setUsers } = useUsers();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
   const [deleteUser, setDeleteUser] = useState(null);
   const [statusFilter, setStatusFilter] = useState("All");
+  const [favoriteFilter, setFavoriteFilter] = useState("All");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
-  
 
   const filteredUsers = users.filter((user) => {
     const search = searchTerm.trim().toLowerCase();
-    const matches = user.name.toLowerCase().includes(search) ||
+    const matches =
+      user.name.toLowerCase().includes(search) ||
       user.email.toLowerCase().includes(search) ||
       user.role.toLowerCase().includes(search);
-    const statusMatches = statusFilter === "All" || user.status === statusFilter;
-    return (
-      matches && statusMatches
-    );
+    const statusMatches =
+      statusFilter === "All" || user.status === statusFilter;
+    const favoriteMatches =
+      favoriteFilter === "All" ? true :
+      favoriteFilter === "Favorites" ? user.isFavorite === true : user.isFavorite === false;
+    
+    return matches && statusMatches && favoriteMatches ;
   });
   function handleViewUser(id) {
     const user = users.find((user) => user.id === id);
@@ -40,7 +44,7 @@ function Users() {
       id: users.length + 1,
     };
 
-    setUsers((previousUsers) => [...previousUsers, userWithId]); 
+    setUsers((previousUsers) => [...previousUsers, userWithId]);
     setIsAddUserModalOpen(false);
   }
 
@@ -48,7 +52,7 @@ function Users() {
     const editingUser = users.find((user) => user.id === id);
     setEditingUser(editingUser);
   }
-
+false
   function handleSaveUser(updatedUser) {
     setUsers((prevUsers) =>
       prevUsers.map((user) =>
@@ -76,18 +80,45 @@ function Users() {
     setIsDeleteModalOpen(false);
   }
 
-  function handleAddUserModal(){
+  function handleAddUserModal() {
     setIsAddUserModalOpen(true);
+  }
+
+  function handleToggleFavorites(id) {
+    const newUsers = users.map((u) => {
+      if (u.id === id) {
+        return {
+          ...u,
+          isFavorite: !u.isFavorite,
+        };
+      } else {
+        return u;
+      }
+    });
+
+    setUsers(newUsers);
   }
 
   return (
     <div>
       <PageHeader title="Users" description="Manage and view registered users">
         <PageActions>
-          <select name="filter-options" id="filter" value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+          <select
+            name="filter-options"
+            id="filter"
+            value={statusFilter}
+            onChange={(event) => setStatusFilter(event.target.value)}
+          >
             <option value="All">All</option>
             <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
+            <option value="Inactive">Inactive</option>            
+          </select>
+
+          <select name="filter-favs" id="favorites" value={favoriteFilter}
+            onChange={(event) => setFavoriteFilter(event.target.value)}>
+            <option value="All">All</option>
+            <option value="Favorites">Favorites</option>
+            <option value="Non-favorites">Non-favorites</option>
           </select>
           <input
             type="text"
@@ -95,10 +126,16 @@ function Users() {
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
           />
-          <button type="button" onClick={handleAddUserModal}>Add User</button>
+          <button type="button" onClick={handleAddUserModal}>
+            Add User
+          </button>
         </PageActions>
       </PageHeader>
-          {isAddUserModalOpen && <Modal onClose={()=> setIsAddUserModalOpen(false)}><AddUserForm onAddUser={handleAddUser} /></Modal>}
+      {isAddUserModalOpen && (
+        <Modal onClose={() => setIsAddUserModalOpen(false)}>
+          <AddUserForm onAddUser={handleAddUser} />
+        </Modal>
+      )}
       {isDeleteModalOpen && (
         <Modal onClose={handleCancelDelete} onConfirm={handleConfirmDelete}>
           <h3>Delete User</h3>
@@ -107,10 +144,9 @@ function Users() {
       )}
 
       {editingUser && (
-        <Modal onClose={()=> setEditingUser(null)}>
-        <EditUserForm onSave={handleSaveUser} user={editingUser} />
+        <Modal onClose={() => setEditingUser(null)}>
+          <EditUserForm onSave={handleSaveUser} user={editingUser} />
         </Modal>
-        
       )}
       {loading ? (
         <p>Loading users...</p>
@@ -126,6 +162,7 @@ function Users() {
               onViewUser={handleViewUser}
               onEditUser={handleEditUser}
               onDeleteUser={handleDeleteUser}
+              onToggleFavorite={handleToggleFavorites}
             />
           )}
           {selectedUser && <SelectedUser user={selectedUser} />}
