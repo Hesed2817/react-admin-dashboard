@@ -4,9 +4,8 @@ import {
   saveActivities,
   appendActivity,
 } from "../services/activityStorage";
+import { MAX_STORED_ACTIVITIES } from "../constants/storage";
 import { ActivityContext } from "./ActivityContext";
-
-const MAX_ACTIVITIES = 100;
 
 function ActivityProvider({ children }) {
   const [activities, setActivities] = useState(
@@ -27,7 +26,7 @@ function ActivityProvider({ children }) {
     };
 
     setActivities((previousActivities) =>
-      appendActivity(previousActivities, activity, MAX_ACTIVITIES),
+      appendActivity(previousActivities, activity, MAX_STORED_ACTIVITIES),
     );
   }
 

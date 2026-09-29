@@ -7,9 +7,11 @@ import { PageHeader } from "../components/PageHeader";
 import { PatientTable } from "../components/PatientTable";
 import { SelectedPatient } from "../components/SelectedPatient";
 import { usePatients } from "../hooks/usePatients";
-import { PATIENT_STATUS_OPTIONS } from "../constants/statuses";
-
-const ALL_STATUSES = "All";
+import {
+  ALL_STATUSES,
+  PATIENT_STATUS_OPTIONS,
+} from "../constants/statuses";
+import { filterPatients } from "../utils/patients";
 
 function Patients() {
   const { patients, loading, error, addPatient, updatePatient, deletePatient } =
@@ -25,16 +27,9 @@ function Patients() {
   const selectedPatient =
     patients.find((patient) => patient.id === selectedPatientId) || null;
 
-  const filteredPatients = patients.filter((patient) => {
-    const search = searchTerm.trim().toLowerCase();
-    const matches =
-      patient.name.toLowerCase().includes(search) ||
-      patient.email.toLowerCase().includes(search) ||
-      patient.phone.toLowerCase().includes(search);
-    const statusMatches =
-      statusFilter === ALL_STATUSES || patient.status === statusFilter;
-
-    return matches && statusMatches;
+  const filteredPatients = filterPatients(patients, {
+    searchTerm,
+    statusFilter,
   });
 
   function handleViewPatient(id) {
@@ -144,8 +139,10 @@ function Patients() {
         <p>{error}</p>
       ) : (
         <>
-          {filteredPatients.length === 0 ? (
-            <p>No patients found.</p>
+          {patients.length === 0 ? (
+            <p>No patients yet. Add your first patient to get started.</p>
+          ) : filteredPatients.length === 0 ? (
+            <p>No patients match the current search and filters.</p>
           ) : (
             <PatientTable
               patients={filteredPatients}

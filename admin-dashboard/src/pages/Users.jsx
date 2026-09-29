@@ -7,11 +7,13 @@ import { useState } from "react";
 import { PageHeader } from "../components/PageHeader";
 import { PageActions } from "../components/PageActions";
 import { useUsers } from "../hooks/useUsers";
-import { USER_STATUS_OPTIONS } from "../constants/statuses";
-
-const ALL_STATUSES = "All";
-const FAVORITES_FILTER = "Favorites";
-const NON_FAVORITES_FILTER = "Non-favorites";
+import {
+  ALL_STATUSES,
+  FAVORITES_FILTER,
+  NON_FAVORITES_FILTER,
+  USER_STATUS_OPTIONS,
+} from "../constants/statuses";
+import { filterUsers } from "../utils/users";
 
 function Users() {
   const { users, loading, error, addUser, updateUser, deleteUser, toggleFavorite } =
@@ -28,23 +30,12 @@ function Users() {
   const selectedUser =
     users.find((user) => user.id === selectedUserId) || null;
 
-  const filteredUsers = users.filter((user) => {
-    const search = searchTerm.trim().toLowerCase();
-    const matches =
-      user.name.toLowerCase().includes(search) ||
-      user.email.toLowerCase().includes(search) ||
-      user.role.toLowerCase().includes(search);
-    const statusMatches =
-      statusFilter === ALL_STATUSES || user.status === statusFilter;
-    const favoriteMatches =
-      favoriteFilter === ALL_STATUSES
-        ? true
-        : favoriteFilter === FAVORITES_FILTER
-          ? user.isFavorite === true
-          : user.isFavorite === false;
-    
-    return matches && statusMatches && favoriteMatches ;
+  const filteredUsers = filterUsers(users, {
+    searchTerm,
+    statusFilter,
+    favoriteFilter,
   });
+
   function handleViewUser(id) {
     setSelectedUserId(id);
   }
@@ -156,8 +147,10 @@ function Users() {
         <p>{error}</p>
       ) : (
         <>
-          {filteredUsers.length === 0 ? (
-            <p>No users found.</p>
+          {users.length === 0 ? (
+            <p>No users yet. Add your first user to get started.</p>
+          ) : filteredUsers.length === 0 ? (
+            <p>No users match the current search and filters.</p>
           ) : (
             <UserTable
               users={filteredUsers}

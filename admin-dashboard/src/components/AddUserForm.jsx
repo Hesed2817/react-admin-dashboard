@@ -1,32 +1,14 @@
 import { useState } from "react";
-import { isValidEmail } from "../utils/validation";
+import { validateUser } from "../utils/users";
+import { useUsers } from "../hooks/useUsers";
 import { STATUS_ACTIVE } from "../constants/statuses";
 
 function AddUserForm({ onAddUser }) {
+  const { users } = useUsers();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("");
   const [errors, setErrors] = useState({});
-
-  function validate(values) {
-    const nextErrors = {};
-
-    if (!values.name) {
-      nextErrors.name = "Name is required";
-    }
-
-    if (!values.email) {
-      nextErrors.email = "Email is required";
-    } else if (!isValidEmail(values.email)) {
-      nextErrors.email = "Enter a valid email address";
-    }
-
-    if (!values.role) {
-      nextErrors.role = "Role is required";
-    }
-
-    return nextErrors;
-  }
 
   function handleChange(setValue, field) {
     return (event) => {
@@ -44,7 +26,7 @@ function AddUserForm({ onAddUser }) {
       role: role.trim(),
     };
 
-    const nextErrors = validate(values);
+    const nextErrors = validateUser(values, { users });
 
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);

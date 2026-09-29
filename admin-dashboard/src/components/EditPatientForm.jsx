@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { isValidEmail, isValidPhone } from "../utils/validation";
-import { isValidDateOfBirth } from "../utils/patients";
+import { validatePatient } from "../utils/patients";
 import { PATIENT_STATUS_OPTIONS } from "../constants/statuses";
+import { GENDER_OPTIONS } from "../constants/genders";
 
 function EditPatientForm({ patient, onSave }) {
   const [editedName, setEditedName] = useState(patient.name);
@@ -11,40 +11,6 @@ function EditPatientForm({ patient, onSave }) {
   const [editedEmail, setEditedEmail] = useState(patient.email);
   const [editedStatus, setEditedStatus] = useState(patient.status);
   const [errors, setErrors] = useState({});
-
-  function validate(values) {
-    const nextErrors = {};
-
-    if (!values.name) {
-      nextErrors.name = "Name is required";
-    }
-
-    if (!values.dateOfBirth) {
-      nextErrors.dateOfBirth = "Date of birth is required";
-    } else if (!isValidDateOfBirth(values.dateOfBirth)) {
-      nextErrors.dateOfBirth = "Enter a valid date of birth";
-    } else if (new Date(values.dateOfBirth) > new Date()) {
-      nextErrors.dateOfBirth = "Date of birth cannot be in the future";
-    }
-
-    if (!values.gender) {
-      nextErrors.gender = "Gender is required";
-    }
-
-    if (!values.phone) {
-      nextErrors.phone = "Phone is required";
-    } else if (!isValidPhone(values.phone)) {
-      nextErrors.phone = "Enter a valid phone number";
-    }
-
-    if (!values.email) {
-      nextErrors.email = "Email is required";
-    } else if (!isValidEmail(values.email)) {
-      nextErrors.email = "Enter a valid email address";
-    }
-
-    return nextErrors;
-  }
 
   function handleSavePatient(event) {
     event.preventDefault();
@@ -58,7 +24,7 @@ function EditPatientForm({ patient, onSave }) {
       status: editedStatus,
     };
 
-    const nextErrors = validate(values);
+    const nextErrors = validatePatient(values);
 
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
@@ -91,9 +57,11 @@ function EditPatientForm({ patient, onSave }) {
         value={editedGender}
         onChange={(event) => setEditedGender(event.target.value)}
       >
-        <option value="Male">Male</option>
-        <option value="Female">Female</option>
-        <option value="Other">Other</option>
+        {GENDER_OPTIONS.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
       </select>
       {errors.gender && <p>{errors.gender}</p>}
 

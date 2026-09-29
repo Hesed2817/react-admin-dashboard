@@ -1,6 +1,6 @@
 import {
   STATUS_ACTIVE,
-  STATUS_INACTIVE,
+  STATUS_DISCHARGED,
   STATUS_PENDING,
 } from "../constants/statuses";
 
@@ -22,7 +22,7 @@ const MOCK_PATIENTS = [
     gender: "Male",
     phone: "+1 (555) 908-4432",
     email: "marcus.lee@example.com",
-    status: STATUS_INACTIVE,
+    status: STATUS_DISCHARGED,
     dateOfBirth: "1967-11-02",
     lastVisit: "2025-12-04",
     createdAt: "2023-06-18T13:40:00.000Z",
@@ -77,7 +77,7 @@ const MOCK_PATIENTS = [
     gender: "Female",
     phone: "+1 (555) 289-5543",
     email: "fatima.noor@example.com",
-    status: STATUS_INACTIVE,
+    status: STATUS_DISCHARGED,
     dateOfBirth: "1995-05-17",
     lastVisit: "2025-10-11",
     createdAt: "2023-02-03T10:30:00.000Z",

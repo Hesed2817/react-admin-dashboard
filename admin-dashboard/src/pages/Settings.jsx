@@ -1,12 +1,20 @@
 import { useState } from "react";
 import { PageHeader } from "../components/PageHeader";
+import { Modal } from "../components/Modal";
 import { useSettings } from "../hooks/useSettings";
+import { useUsers } from "../hooks/useUsers";
+import { usePatients } from "../hooks/usePatients";
+import { useActivities } from "../hooks/useActivities";
 import { DEFAULT_SETTINGS } from "../services/settingsStorage";
 
 function Settings() {
   const { settings, updateSettings, resetSettings } = useSettings();
+  const { users, resetUsers } = useUsers();
+  const { patients, resetPatients } = usePatients();
+  const { recordActivity, clearActivities } = useActivities();
   const [formData, setFormData] = useState(settings);
   const [saveMessage, setSaveMessage] = useState("");
+  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
 
   function handleProfileChange(field, value) {
     setFormData((prev) => ({
@@ -48,6 +56,24 @@ function Settings() {
     resetSettings();
     setFormData(DEFAULT_SETTINGS);
     setSaveMessage("Settings reset to defaults.");
+  }
+
+  async function handleConfirmResetDemoData() {
+    await Promise.all([resetUsers(), resetPatients()]);
+
+    clearActivities();
+    recordActivity({
+      type: "reset",
+      message:
+        "Demo data reset: users and patients restored to the original sample records, activity log cleared",
+      entityType: "settings",
+      entityId: 0,
+    });
+
+    setIsResetModalOpen(false);
+    setSaveMessage(
+      `Demo data reset. ${users.length} user records and ${patients.length} patient records were replaced with the original sample data.`,
+    );
   }
 
   return (
@@ -116,6 +142,29 @@ function Settings() {
           Reset to Defaults
         </button>
       </form>
+
+      <h2>Demo data</h2>
+      <p>
+        Restore the original sample users and patients, and clear the activity
+        log. Your settings above are not affected.
+      </p>
+      <button type="button" onClick={() => setIsResetModalOpen(true)}>
+        Reset demo data
+      </button>
+
+      {isResetModalOpen && (
+        <Modal
+          onClose={() => setIsResetModalOpen(false)}
+          onConfirm={handleConfirmResetDemoData}
+        >
+          <h2>Reset demo data</h2>
+          <p>
+            This permanently deletes all {users.length} user records, all{" "}
+            {patients.length} patient records and the entire activity log, then
+            restores the original sample data. This cannot be undone.
+          </p>
+        </Modal>
+      )}
     </div>
   );
 }

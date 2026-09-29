@@ -1,6 +1,7 @@
 import {
   STATUS_ACTIVE,
   STATUS_INACTIVE,
+  STATUS_DISCHARGED,
   STATUS_PENDING,
 } from "../constants/statuses";
 
@@ -8,6 +9,7 @@ function StatusBadge({ status }) {
   const statusClassNames = {
     [STATUS_ACTIVE]: "status-badge status-active",
     [STATUS_INACTIVE]: "status-badge status-inactive",
+    [STATUS_DISCHARGED]: "status-badge status-inactive",
     [STATUS_PENDING]: "status-badge status-pending",
   };
 

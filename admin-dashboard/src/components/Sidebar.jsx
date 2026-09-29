@@ -7,6 +7,7 @@ function Sidebar() {
                 <li><NavLink className={({isActive}) => isActive ? "nav-link active" : "nav-link"} to="/users">Users</NavLink></li>
                 <li><NavLink className={({isActive}) => isActive ? "nav-link active" : "nav-link"} to="/patients">Patients</NavLink></li>
                 <li><NavLink className={({isActive}) => isActive ? "nav-link active" : "nav-link"} to="/reports">Reports</NavLink></li>
+                <li><NavLink className={({isActive}) => isActive ? "nav-link active" : "nav-link"} to="/activity">Activity</NavLink></li>
                 <li><NavLink className={({isActive}) => isActive ? "nav-link active" : "nav-link"} to="/settings">Settings</NavLink></li>
             </ul>
         </nav>

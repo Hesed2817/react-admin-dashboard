@@ -27,7 +27,11 @@ function appendActivity(activities, activity, maxActivities) {
   return [{ ...activity, id: nextId }, ...activities].slice(0, maxActivities);
 }
 
+const activityMigrations = {
+  1: (activities) => activities,
+};
+
 const { getStoredItems: getStoredActivities, saveItems: saveActivities } =
-  createStorage(STORAGE_KEY, isValidActivity);
+  createStorage(STORAGE_KEY, isValidActivity, activityMigrations);
 
 export { getStoredActivities, saveActivities, appendActivity };

@@ -1,5 +1,6 @@
 import { createStorage } from "./resourceStorage";
 import { isValidDateOfBirth } from "../utils/patients";
+import { STATUS_DISCHARGED, STATUS_INACTIVE } from "../constants/statuses";
 
 const STORAGE_KEY = "admin-dashboard.patients";
 
@@ -27,6 +28,12 @@ const patientMigrations = {
       delete migratedPatient.age;
       return migratedPatient;
     }),
+  1: (patients) =>
+    patients.map((patient) =>
+      patient.status === STATUS_INACTIVE
+        ? { ...patient, status: STATUS_DISCHARGED }
+        : patient,
+    ),
 };
 
 const { getStoredItems: getStoredPatients, saveItems: savePatients } =

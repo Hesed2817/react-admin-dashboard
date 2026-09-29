@@ -1,14 +1,17 @@
 import { StatCard } from "../components/StatCard";
 import { useUsers } from "../hooks/useUsers";
 import { usePatients } from "../hooks/usePatients";
+import { Link } from "react-router";
 import { useActivities } from "../hooks/useActivities";
+import { formatActivityTimestamp } from "../utils/activity";
 import {
   STATUS_ACTIVE,
   STATUS_INACTIVE,
+  STATUS_DISCHARGED,
   STATUS_PENDING,
 } from "../constants/statuses";
 
-const RECENT_ACTIVITY_LIMIT = 5;
+const RECENT_ACTIVITY_LIMIT = 8;
 
 function Dashboard() {
   const {
@@ -69,10 +72,10 @@ function Dashboard() {
     },
     {
       id: 7,
-      title: "Inactive Patients",
-      value: patients.filter((patient) => patient.status === STATUS_INACTIVE)
+      title: "Discharged Patients",
+      value: patients.filter((patient) => patient.status === STATUS_DISCHARGED)
         .length,
-      description: "Currently inactive",
+      description: "No longer under care",
     },
     {
       id: 8,
@@ -92,20 +95,22 @@ function Dashboard() {
         <p>Loading statistics...</p>
       ) : error ? (
         <p>{error}</p>
-      ) : isEmpty ? (
-        <p>No data available.</p>
       ) : (
         <>
-          <div className="stats-grid">
-            {statistics.map(({ id, title, value, description }) => (
-              <StatCard
-                key={id}
-                title={title}
-                value={value}
-                description={description}
-              />
-            ))}
-          </div>
+          {isEmpty ? (
+            <p>No data available.</p>
+          ) : (
+            <div className="stats-grid">
+              {statistics.map(({ id, title, value, description }) => (
+                <StatCard
+                  key={id}
+                  title={title}
+                  value={value}
+                  description={description}
+                />
+              ))}
+            </div>
+          )}
 
           <section>
             <h2>Recent Activity</h2>
@@ -116,11 +121,14 @@ function Dashboard() {
                 {recentActivities.map((activity) => (
                   <li key={activity.id}>
                     {activity.message} —{" "}
-                    {new Date(activity.timestamp).toLocaleString()}
+                    {formatActivityTimestamp(activity.timestamp)}
                   </li>
                 ))}
               </ul>
             )}
+            <p>
+              <Link to="/activity">View all activity</Link>
+            </p>
           </section>
         </>
       )}

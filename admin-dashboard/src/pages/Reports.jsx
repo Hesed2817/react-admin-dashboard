@@ -3,12 +3,12 @@ import { PageActions } from "../components/PageActions";
 import { PageHeader } from "../components/PageHeader";
 import { StatCard } from "../components/StatCard";
 import { TrendTable } from "../components/TrendTable";
-import { usePatients } from "../hooks/usePatients";
-import { useUsers } from "../hooks/useUsers";
-import { buildPatientReport, buildUserReport } from "../utils/reports";
+import { BreakdownTable } from "../components/BreakdownTable";
+import { useReportData } from "../hooks/useReportData";
 import {
   STATUS_ACTIVE,
   STATUS_INACTIVE,
+  STATUS_DISCHARGED,
   STATUS_PENDING,
 } from "../constants/statuses";
 
@@ -16,87 +16,19 @@ const ALL_CATEGORIES = "All";
 const FAVORITE_CATEGORY = "Favorites";
 
 function Reports() {
-  const {
-    users,
-    loading: usersLoading,
-    error: usersError,
-  } = useUsers();
-  const {
-    patients,
-    loading: patientsLoading,
-    error: patientsError,
-  } = usePatients();
-
   const [period, setPeriod] = useState("all");
   const [userCategory, setUserCategory] = useState(ALL_CATEGORIES);
   const [patientCategory, setPatientCategory] = useState(ALL_CATEGORIES);
 
-  const loading = usersLoading || patientsLoading;
-  const error = usersError || patientsError;
-  const isEmpty = users.length === 0 && patients.length === 0;
-
-  const userReport = buildUserReport(users, {
-    period,
-    category: userCategory,
-  });
-  const patientReport = buildPatientReport(patients, {
-    period,
-    category: patientCategory,
-  });
-
-  const userStatistics = [
-    {
-      id: "users-total",
-      title: "Total Users",
-      value: userReport.total,
-      description: "In selected period",
-    },
-    {
-      id: "users-active",
-      title: "Active Users",
-      value: userReport.active,
-      description: "In selected period",
-    },
-    {
-      id: "users-inactive",
-      title: "Inactive Users",
-      value: userReport.inactive,
-      description: "In selected period",
-    },
-    {
-      id: "users-favorite",
-      title: "Favorite Users",
-      value: userReport.favorite,
-      description: "In selected period",
-    },
-  ];
-
-  const patientStatistics = [
-    {
-      id: "patients-total",
-      title: "Total Patients",
-      value: patientReport.total,
-      description: "In selected period",
-    },
-    {
-      id: "patients-active",
-      title: "Active Patients",
-      value: patientReport.active,
-      description: "In selected period",
-    },
-    {
-      id: "patients-inactive",
-      title: "Inactive Patients",
-      value: patientReport.inactive,
-      description: "In selected period",
-    },
-    {
-      id: "patients-pending",
-      title: "Pending Patients",
-      value: patientReport.pending,
-      description: "In selected period",
-    },
-  ];
+  const {
+    loading,
+    error,
+    isEmpty,
+    userReport,
+    patientReport,
+    userStatistics,
+    patientStatistics,
+  } = useReportData({ period, userCategory, patientCategory });
 
   return (
     <div>
@@ -155,6 +87,11 @@ function Reports() {
               title="Users created over time"
               trend={userReport.createdOverTime}
             />
+
+            <BreakdownTable
+              title="Users by status"
+              rows={userReport.statusBreakdown}
+            />
           </section>
 
           <section>
@@ -167,7 +104,7 @@ function Reports() {
             >
               <option value={ALL_CATEGORIES}>All</option>
               <option value={STATUS_ACTIVE}>Active</option>
-              <option value={STATUS_INACTIVE}>Inactive</option>
+              <option value={STATUS_DISCHARGED}>Discharged</option>
               <option value={STATUS_PENDING}>Pending</option>
             </select>
 
@@ -185,6 +122,21 @@ function Reports() {
             <TrendTable
               title="Patients registered over time"
               trend={patientReport.createdOverTime}
+            />
+
+            <BreakdownTable
+              title="Patients by status"
+              rows={patientReport.statusBreakdown}
+            />
+
+            <BreakdownTable
+              title="Patients by gender"
+              rows={patientReport.genderBreakdown}
+            />
+
+            <BreakdownTable
+              title="Patients by age group"
+              rows={patientReport.ageGroupBreakdown}
             />
           </section>
         </>
