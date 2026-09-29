@@ -1,7 +1,9 @@
+import { Link } from "react-router";
+import { EmptyState } from "../components/EmptyState";
+import { PageHeader } from "../components/PageHeader";
 import { StatCard } from "../components/StatCard";
 import { useUsers } from "../hooks/useUsers";
 import { usePatients } from "../hooks/usePatients";
-import { Link } from "react-router";
 import { useActivities } from "../hooks/useActivities";
 import { formatActivityTimestamp } from "../utils/activity";
 import {
@@ -32,6 +34,8 @@ function Dashboard() {
   const error = usersError || patientsError;
   const isEmpty = users.length === 0 && patients.length === 0;
 
+  // Every value below is computed from the shared stores. Nothing here is a
+  // stored copy or a hardcoded figure.
   const statistics = [
     {
       id: 1,
@@ -68,7 +72,7 @@ function Dashboard() {
       title: "Active Patients",
       value: patients.filter((patient) => patient.status === STATUS_ACTIVE)
         .length,
-      description: "Currently active",
+      description: "Currently under care",
     },
     {
       id: 7,
@@ -86,52 +90,75 @@ function Dashboard() {
     },
   ];
 
+  if (loading) {
+    return (
+      <div className="loading" role="status" aria-live="polite">
+        <span>Loading statistics...</span>
+        <span className="loading__bar" />
+        <span className="loading__bar" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <p className="inline-message inline-message--error" role="alert">
+        {error}
+      </p>
+    );
+  }
+
   return (
     <>
-      <h1>Dashboard Overview</h1>
-      <p>Welcome to your admin dashboard.</p>
+      <PageHeader
+        title="Dashboard Overview"
+        description="Live totals computed from the Users and Patients stores."
+      />
 
-      {loading ? (
-        <p>Loading statistics...</p>
-      ) : error ? (
-        <p>{error}</p>
+      {isEmpty ? (
+        <EmptyState
+          title="No data available"
+          message="Add your first user or patient and the statistics will appear here."
+        />
       ) : (
-        <>
-          {isEmpty ? (
-            <p>No data available.</p>
-          ) : (
-            <div className="stats-grid">
-              {statistics.map(({ id, title, value, description }) => (
-                <StatCard
-                  key={id}
-                  title={title}
-                  value={value}
-                  description={description}
-                />
-              ))}
-            </div>
-          )}
-
-          <section>
-            <h2>Recent Activity</h2>
-            {recentActivities.length === 0 ? (
-              <p>No recent activity.</p>
-            ) : (
-              <ul>
-                {recentActivities.map((activity) => (
-                  <li key={activity.id}>
-                    {activity.message} —{" "}
-                    {formatActivityTimestamp(activity.timestamp)}
-                  </li>
-                ))}
-              </ul>
-            )}
-            <p>
-              <Link to="/activity">View all activity</Link>
-            </p>
-          </section>
-        </>
+        <div className="stats-grid">
+          {statistics.map(({ id, title, value, description }) => (
+            <StatCard
+              key={id}
+              title={title}
+              value={value}
+              description={description}
+            />
+          ))}
+        </div>
       )}
+
+      <section className="section">
+        <div className="section__header">
+          <h2>Recent Activity</h2>
+        </div>
+
+        {recentActivities.length === 0 ? (
+          <p className="field-hint">No recent activity.</p>
+        ) : (
+          <ul className="activity-list">
+            {recentActivities.map((activity) => (
+              <li className="activity-list__item" key={activity.id}>
+                <span className="activity-list__message">
+                  {activity.message}
+                </span>
+                <span className="activity-list__time">
+                  {formatActivityTimestamp(activity.timestamp)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <p className="section__footer">
+          <Link to="/activity">View all activity</Link>
+        </p>
+      </section>
     </>
   );
 }

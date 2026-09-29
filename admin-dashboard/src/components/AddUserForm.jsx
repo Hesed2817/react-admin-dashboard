@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { Button } from "./Button";
+import { Field } from "./Field";
 import { validateUser } from "../utils/users";
 import { useUsers } from "../hooks/useUsers";
 import { STATUS_ACTIVE } from "../constants/statuses";
@@ -37,34 +39,49 @@ function AddUserForm({ onAddUser }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
-      <input
-        type="text"
-        placeholder="Name"
-        value={name}
-        onChange={handleChange(setName, "name")}
-      />
-      {errors.name && <p>{errors.name}</p>}
+    <form className="form" onSubmit={handleSubmit} noValidate>
+      <Field label="Name" error={errors.name}>
+        {(controlProps) => (
+          <input
+            type="text"
+            className="field-control"
+            value={name}
+            onChange={handleChange(setName, "name")}
+            {...controlProps}
+          />
+        )}
+      </Field>
 
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={handleChange(setEmail, "email")}
-      />
-      {errors.email && <p>{errors.email}</p>}
+      <Field label="Email" error={errors.email}>
+        {(controlProps) => (
+          <input
+            type="email"
+            className="field-control"
+            value={email}
+            onChange={handleChange(setEmail, "email")}
+            {...controlProps}
+          />
+        )}
+      </Field>
 
-      <input
-        type="text"
-        placeholder="Role"
-        value={role}
-        onChange={handleChange(setRole, "role")}
-      />
-      {errors.role && <p>{errors.role}</p>}
+      <Field label="Role" error={errors.role}>
+        {(controlProps) => (
+          <input
+            type="text"
+            className="field-control"
+            placeholder="e.g. Administrator, Receptionist"
+            value={role}
+            onChange={handleChange(setRole, "role")}
+            {...controlProps}
+          />
+        )}
+      </Field>
 
-      <button type="submit">
-        Add User
-      </button>
+      <div className="form-actions">
+        <Button type="submit" variant="primary">
+          Add User
+        </Button>
+      </div>
     </form>
   );
 }

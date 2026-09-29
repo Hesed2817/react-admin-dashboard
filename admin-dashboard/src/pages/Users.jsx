@@ -1,11 +1,15 @@
+import { useState } from "react";
 import { AddUserForm } from "../components/AddUserForm";
+import { Button } from "../components/Button";
 import { EditUserForm } from "../components/EditUserForm";
+import { EmptyState } from "../components/EmptyState";
+import { Field } from "../components/Field";
+import { Icon } from "../components/Icon";
 import { Modal } from "../components/Modal";
+import { PageActions } from "../components/PageActions";
+import { PageHeader } from "../components/PageHeader";
 import { SelectedUser } from "../components/SelectedUser";
 import { UserTable } from "../components/UserTable";
-import { useState } from "react";
-import { PageHeader } from "../components/PageHeader";
-import { PageActions } from "../components/PageActions";
 import { useUsers } from "../hooks/useUsers";
 import {
   ALL_STATUSES,
@@ -46,8 +50,7 @@ function Users() {
   }
 
   function handleEditUser(id) {
-    const editingUser = users.find((user) => user.id === id);
-    setEditingUser(editingUser);
+    setEditingUser(users.find((user) => user.id === id));
   }
 
   function handleSaveUser(updatedUser) {
@@ -56,8 +59,7 @@ function Users() {
   }
 
   function handleDeleteUser(id) {
-    const user = users.find((user) => user.id === id);
-    setUserToDelete(user);
+    setUserToDelete(users.find((user) => user.id === id));
     setIsDeleteModalOpen(true);
   }
 
@@ -87,53 +89,92 @@ function Users() {
 
   return (
     <div>
-      <PageHeader title="Users" description="Manage and view registered users">
-        <PageActions>
-          <select
-            name="filter-options"
-            id="filter"
-            value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
-          >
-            <option value={ALL_STATUSES}>All</option>
-            {USER_STATUS_OPTIONS.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
+      <PageHeader
+        title="Users"
+        description="Manage and view registered users"
+      >
+        <PageActions label="User filters and search">
+          <Field label="Status">
+            {(controlProps) => (
+              <select
+                className="field-control"
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value)}
+                {...controlProps}
+              >
+                <option value={ALL_STATUSES}>All statuses</option>
+                {USER_STATUS_OPTIONS.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            )}
+          </Field>
 
-          <select name="filter-favs" id="favorites" value={favoriteFilter}
-            onChange={(event) => setFavoriteFilter(event.target.value)}>
-            <option value={ALL_STATUSES}>All</option>
-            <option value={FAVORITES_FILTER}>Favorites</option>
-            <option value={NON_FAVORITES_FILTER}>Non-favorites</option>
-          </select>
-          <input
-            type="text"
-            placeholder="Search users..."
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-          />
-          <button type="button" onClick={handleAddUserModal}>
-            Add User
-          </button>
+          <Field label="Favorites">
+            {(controlProps) => (
+              <select
+                className="field-control"
+                value={favoriteFilter}
+                onChange={(event) => setFavoriteFilter(event.target.value)}
+                {...controlProps}
+              >
+                <option value={ALL_STATUSES}>All</option>
+                <option value={FAVORITES_FILTER}>Favorites</option>
+                <option value={NON_FAVORITES_FILTER}>Non-favorites</option>
+              </select>
+            )}
+          </Field>
+
+          <Field label="Search users" className="search-field">
+            {(controlProps) => (
+              <>
+                <Icon name="search" />
+                <input
+                  type="text"
+                  className="field-control"
+                  placeholder="Name, email or role"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  {...controlProps}
+                />
+              </>
+            )}
+          </Field>
+
+          <div className="page-actions__primary">
+            <Button variant="primary" onClick={handleAddUserModal}>
+              <Icon name="plus" />
+              Add User
+            </Button>
+          </div>
         </PageActions>
       </PageHeader>
+
       {isAddUserModalOpen && (
-        <Modal onClose={() => setIsAddUserModalOpen(false)}>
+        <Modal title="Add user" onClose={() => setIsAddUserModalOpen(false)}>
           <AddUserForm onAddUser={handleAddUser} />
         </Modal>
       )}
-      {isDeleteModalOpen && (
-        <Modal onClose={handleCancelDelete} onConfirm={handleConfirmDelete}>
-          <h3>Delete User</h3>
-          <p>Are you sure you want to delete {userToDelete.name}?</p>
+
+      {isDeleteModalOpen && userToDelete && (
+        <Modal
+          title="Delete user"
+          onClose={handleCancelDelete}
+          onConfirm={handleConfirmDelete}
+          confirmLabel="Delete user"
+          confirmVariant="danger"
+        >
+          <p>
+            Are you sure you want to delete <strong>{userToDelete.name}</strong>?
+            This permanently removes the record and cannot be undone.
+          </p>
         </Modal>
       )}
 
       {editingUser && (
-        <Modal onClose={() => setEditingUser(null)}>
+        <Modal title="Edit user" onClose={() => setEditingUser(null)}>
           <EditUserForm
             key={editingUser.id}
             onSave={handleSaveUser}
@@ -141,28 +182,44 @@ function Users() {
           />
         </Modal>
       )}
+
       {loading ? (
-        <p>Loading users...</p>
+        <div className="loading" role="status" aria-live="polite">
+          <span>Loading users...</span>
+          <span className="loading__bar" />
+        </div>
       ) : error ? (
-        <p>{error}</p>
+        <p className="inline-message inline-message--error" role="alert">
+          {error}
+        </p>
+      ) : users.length === 0 ? (
+        <EmptyState
+          title="No users yet"
+          message="Add your first user to get started."
+          icon="plus"
+        >
+          <Button variant="primary" onClick={handleAddUserModal}>
+            <Icon name="plus" />
+            Add User
+          </Button>
+        </EmptyState>
+      ) : filteredUsers.length === 0 ? (
+        <EmptyState
+          title="No matches"
+          message="No users match the current search and filters."
+          icon="search"
+        />
       ) : (
-        <>
-          {users.length === 0 ? (
-            <p>No users yet. Add your first user to get started.</p>
-          ) : filteredUsers.length === 0 ? (
-            <p>No users match the current search and filters.</p>
-          ) : (
-            <UserTable
-              users={filteredUsers}
-              onViewUser={handleViewUser}
-              onEditUser={handleEditUser}
-              onDeleteUser={handleDeleteUser}
-              onToggleFavorite={handleToggleFavorites}
-            />
-          )}
-          {selectedUser && <SelectedUser user={selectedUser} />}
-        </>
+        <UserTable
+          users={filteredUsers}
+          onViewUser={handleViewUser}
+          onEditUser={handleEditUser}
+          onDeleteUser={handleDeleteUser}
+          onToggleFavorite={handleToggleFavorites}
+        />
       )}
+
+      {selectedUser && <SelectedUser user={selectedUser} />}
     </div>
   );
 }

@@ -112,9 +112,11 @@
 - Wire `clearActivities()` to UI
 
 ### Phase 6: Design Foundation
-- Establish CSS variables/tokens in `index.css`
-- Add CSS custom properties for colors, spacing, typography
-- No visual changes to components yet
+- Establish the locked design system as CSS custom properties in a dedicated `src/styles/tokens.css` (not inline in `index.css`, so Phase 7 has one place to change)
+- Add base element styles (`base.css`) and app-shell styles (`shell.css`)
+- Make the shell responsive: full sidebar ≥1200px, reduced sidebar 768–1199px, keyboard-accessible drawer <768px
+- Convert the pre-existing component CSS to tokens only in Phase 7 — Phase 6 changes no page or component appearance
+- **PrimeReact is NOT installed.** At the time of Phase 6 the decision was deferred ("token-only now, decide later"). **Superseded in Phase 7:** the owner permanently reversed the component-library option. See "Permanent library decision" below.
 
 ### Phase 7: Component/Page Redesign
 - Apply locked visual redesign to all components
@@ -466,12 +468,52 @@ Full chain driven through the real storage services, the real report builders, a
 6. **Two separate destructive actions now exist** (clear activity log, reset demo data) with two separate confirmations, and neither is undoable. The modals state the counts, which is good, but there is still no recovery path.
 7. All Phase 1/2/3/3b/4 flags remain open as previously recorded. The age bands and the unknown-category behaviour from Phase 4 were reviewed and **kept as-is at the user's direction**.
 
+### Phase 6 — Design Foundation (2026-09-29)
+
+**Outcome: the locked design system is now the single source of truth as CSS custom properties, the app shell is responsive and keyboard-accessible, and no page or component changed appearance. PrimeReact was deliberately not installed.**
+
+#### Files added
+| File | Purpose |
+| --- | --- |
+| `src/styles/tokens.css` | The locked design system. All colours, typography, radii, borders, shadows, spacing, shell dimensions, z-index and motion tokens. |
+| `src/styles/base.css` | Element defaults: type scale, the global `:focus-visible` ring, `prefers-reduced-motion`, scrollbars. |
+| `src/styles/shell.css` | App shell grid, sidebar, header, nav, responsive drawer, scrim. |
+| `src/hooks/useFocusTrap.js` | Focus trap + Esc + focus restoration for the drawer. |
+
+#### Files changed
+- `src/index.css` — now opens with three `@import` lines and keeps **all** pre-existing component CSS below them, byte-for-byte unchanged. No component selector was rewritten.
+- `index.html` — added `preconnect` to `fonts.googleapis.com` and `fonts.gstatic.com`, then a single `display=swap` stylesheet for Inter (400/500/600/700) and Poppins (500/600/700).
+- `src/layouts/AdminLayout.jsx` — owns drawer state, holds the sidebar ref, wires the focus trap, renders the scrim. **Provider nesting and route structure are unchanged.**
+- `src/components/Header.jsx` — menu button with `aria-expanded` / `aria-controls` / dynamic label; the title is now a deliberately small, de-emphasised `h1`.
+- `src/components/Sidebar.jsx` — `forwardRef`, `id="app-sidebar"`, `tabIndex={-1}`, labelled `nav` landmark, close-on-navigate. All six routes and `end`-matching on `/` preserved.
+
+#### Verified
+- **Contrast was computed, not asserted.** A harness implements the WCAG relative-luminance formula and evaluates every documented pairing from the real hex values. Result: text-primary 19.22:1, text-secondary 7.77:1, text-muted 5.32:1, accent 5.27:1, accent-on-subtle 4.74:1, success 5.25:1, warning 5.93:1, error 6.54:1, inverse-on-accent 5.27:1. All clear 4.5:1.
+- **Responsive verified by evaluating the real cascade** at 1440 / 1000 / 390. 1440 → `240px 1fr` sidebar, 64px header, 32px padding, no menu button, no scrim. 1000 → 200px sidebar, 24px padding, still no drawer. 390 → single column, sidebar `position: fixed` 240px/84vw, off-canvas at `translateX(-100%)`, menu button visible, scrim active. Breakpoint boundaries confirmed exact: 1199/1200 and 767/768.
+- Build output inspected: the token block, the drawer breakpoint and the `display=swap` font link are all present in `dist/`.
+- **No functionality regression.** All 550 prior assertions still pass unchanged (37 + 24 + 79 + 81 + 45 + 100 + 125 + 23 + 36), plus 150 new Phase 6 assertions (117 spec + 33 responsive). `npm run lint` and `npm run build` clean.
+
+#### One real defect found and fixed during verification
+The original `--color-border-control: #8a93a0` reached only **2.92:1** against `--color-surface-muted` (`#f7f8fa`), below the 3:1 that WCAG 1.4.11 requires for the boundaries of interactive controls. Darkened to **`#828b98`**, which measures 3.45:1 on white and 3.24:1 on the muted surface. The lighter `--color-border-strong` is retained for decorative dividers, where 1.4.11 does not apply.
+
+#### Flags
+1. **The drawer is not a real `<dialog>` and does not use `inert`.** It is an overlay `<nav>` with a focus trap. This is functional and keyboard-complete, but a closed drawer relies on `visibility: hidden` to leave the tab order. Using `inert` or the native `<dialog>` element would be more robust.
+2. **`useIsCompactViewport()` reads `matchMedia` once at mount and never re-reads it.** Rotating a phone, or resizing a desktop window from 1200px to 700px, will not update the breakpoint state used for the scrim. The **CSS** is correct at every width (verified above); only the scrim's mount condition is stale. A `matchMedia` change listener would fix it.
+3. **The focus trap moves focus to the first focusable element, which is the first nav link — not the drawer itself.** A screen reader therefore announces a link rather than the navigation landmark on open.
+4. **The `isCompact` prop gates the scrim but not the trap.** If the drawer were ever opened programmatically on desktop, the trap would engage on a permanently visible sidebar. Only the hidden menu button prevents this today.
+5. **The body is not scroll-locked while the drawer is open.** Background scrolling on touch devices is possible behind the overlay.
+6. **Poppins and Inter are loaded from Google Fonts, so rendering depends on a third-party network call.** `display=swap` and `preconnect` mitigate this, and the fallback stack ends in `system-ui`, but the app is not fully self-contained offline.
+7. **Legacy component CSS in `index.css` still hardcodes colours, radii and spacing** (and carries its own 1000px/600px breakpoints). It was intentionally left untouched so that Phase 6 changes no appearance. **Phase 7 must convert it**, or the token system will be only half-adopted.
+8. **Theme support is not implemented.** The appearance selector in Settings still has no effect on these tokens; there is no `[data-theme]` hook yet.
+9. ~~**PrimeReact remains undecided.**~~ **RESOLVED in Phase 7:** the owner permanently reversed this. No component library will be installed. See "Permanent library decision". The `tokens.css` mapping table referenced here was removed, because a mapping table for a library that will never be adopted is dead configuration.
+10. All Phase 1/2/3/3b/4/5 flags remain open as previously recorded.
+
 ---
 
 ## Contradictions with Description
 
-1. **"Activity log" as a feature** — The description implies an Activity log as a notable feature, but there is no dedicated Activity page. Activity is only shown in the Dashboard's "Recent Activity" section (last 5 items). The `clearActivities()` function exists but has no UI.
-2. **"PrimeReact/Animate UI"** — Neither is installed and neither is referenced anywhere. The project uses plain CSS classes. No animation library exists.
+1. ~~**"Activity log" as a feature** — The description implies an Activity log as a notable feature, but there is no dedicated Activity page. Activity is only shown in the Dashboard's "Recent Activity" section (last 5 items). The `clearActivities()` function exists but has no UI.~~ **RESOLVED in Phase 5**: a dedicated `/activity` page now exists with a full table, and `clearActivities()` has UI. The original finding was correct at the time of the initial inspection.
+2. **"PrimeReact/Animate UI"** — Neither is installed and neither is referenced anywhere. The project uses plain CSS classes. No animation library exists. **Phase 7 made this permanent at the owner's direction** — see "Permanent library decision" below.
 3. **"real API vs mock"** — All data is mocked from arrays in `userService.jsx` and `patientService.jsx`. There is no API layer. After first load, localStorage serves as the data source.
 4. **"shared Users/Patients data"** — Users and Patients are in completely separate contexts with no shared data layer between them. They are distinct entities, which is architecturally correct but could benefit from shared utilities (e.g., ID generation).
 
@@ -480,3 +522,85 @@ Full chain driven through the real storage services, the real report builders, a
 1. **Report period filter effectiveness** — With mock user `createdAt` derived from ID modulo 12 and mock patient `createdAt` spanning 2020–2026, the 6m and 12m period filters may produce empty or near-empty results. This needs verification.
 2. **Activity page necessity** — Whether to add a dedicated `/activities` route depends on the project requirements. The infrastructure (`ActivityContext`, `activityStorage`, `clearActivities`) is already in place.
 3. **Settings activity tracking** — Whether settings changes should generate activity entries is a design decision that hasn't been made explicit in the current codebase.
+
+---
+
+## Permanent library decision
+
+**Decided by the owner during Phase 7. This is permanent and supersedes all earlier "decide later" language.**
+
+The component-library option (PrimeReact) is **reversed and closed**. It will not be installed, configured, imported, aliased or referenced anywhere in the application. The app keeps its hand-built, token-driven component set. The reason the earlier mapping table in `tokens.css` was deleted rather than kept "for later" is that a bridge to a library that will never be adopted is dead configuration, which is exactly the kind of drift the token system exists to prevent.
+
+No part of the UI depends on a third-party component package. `package.json` runtime dependencies remain exactly: `react`, `react-dom`, `react-router`.
+
+---
+
+## Phase 7 — Component and page redesign (2026-09-29)
+
+**Outcome: the token system is now the only source of visual values. Every shared component and every page except the shell has been rebuilt on it, the viewport subscription is live, and the whole surface is keyboard- and screen-reader-complete. All 921 assertions pass, and `npm run lint` / `npm run build` are clean.**
+
+### What was inspected first
+
+- The Phase 6 result (tokens, base, shell, focus trap) and the seven open Phase 6 flags.
+- Every component and page for hardcoded appearance values, placeholder-only forms, unlabelled controls, non-semantic tables, missing dialog semantics and colour-only status.
+- `index.css` was found to still hold the entire legacy component stylesheet (Phase 6 flag 7), which had to be converted for the token system to be more than half-adopted.
+
+### Files added
+
+| File | Purpose |
+| --- | --- |
+| `src/styles/components.css` | The converted component system: buttons, fields, cards, tables, badges, modal, empty state, pagination, loading, page transition. Every value is a token or a `calc()` over tokens. |
+| `src/components/Button.jsx` | The only button. `primary` / `secondary` / `danger` / `ghost`, two sizes. |
+| `src/components/Field.jsx` | Label + control + hint/error wiring. Emits a real `<label for>`, and passes `id`, `aria-invalid` and `aria-describedby` to its child. |
+| `src/components/Icon.jsx` | The single 16px icon set (11 glyphs), 1.5px stroke, always `aria-hidden`. |
+| `src/components/Modal.jsx` | Accessible dialog: `role="dialog"`, `aria-modal`, `aria-labelledby`, `aria-describedby`, focus trap, Esc + backdrop close, scroll lock. |
+| `src/components/Table.jsx` | Labelled, focusable scroll region; `SortableTh` with `aria-sort` and a real button. |
+| `src/components/Pagination.jsx` | Labelled `nav`, live range announcement, optional page-size select. |
+| `src/components/EmptyState.jsx` | Subdued status glyph + title + message + optional action. |
+| `src/components/Avatar.jsx` | Monochrome initials tile. |
+| `src/hooks/useMediaQuery.js` | Live breakpoint subscription via `useSyncExternalStore`. |
+| `src/hooks/usePagination.js` | In-memory pagination with clamping. |
+| `src/hooks/useTableSort.js` | Generic stable column sorting. |
+| `src/hooks/useScrollLock.js` | Background scroll lock with scrollbar-width compensation. |
+
+### Files changed
+
+- `src/index.css` — now contains **imports only**. The entire legacy component stylesheet was moved into `components.css` and converted; no selector was left behind.
+- `src/styles/tokens.css` — added status tokens (`--color-status-{active,discharged,pending,inactive}` and their `-bg` pairs), component geometry (`--icon-size-sm`, `--icon-stroke-width`, `--focus-ring-{width,offset,offset-inset}`, `--checkbox-size`, `--status-dot-{size,size-sm}`, `--notice-accent-width`, `--measure-text`, `--bar-{height,width-min,width-max}`, `--modal-width-max-viewport`, `--space-section-gap`) and the one translucent value (`--color-backdrop`). **Removed 6 tokens that had no consumer anywhere** (`--font-mono`, `--radius-small`, `--border-width-strong`, `--shadow-popover`, `--space-16`, `--z-dropdown`) plus `--space-12`, which became orphaned when `.section` moved to `--space-section-gap`. The `PrimeReact` mapping table was deleted.
+- `src/layouts/AdminLayout.jsx` — the drawer is now **derived** (`isDrawerOpen = isDrawerRequestedOpen && isCompact`) instead of being reset inside an effect. This removes a cascading render and means widening past the breakpoint closes the drawer implicitly. The page wrapper is keyed on `location.pathname` so exactly one enter transition runs per route.
+- `src/components/Header.jsx` — the CSS-drawn hamburger was replaced with the shared `Icon` set, so there is no longer a hand-rolled glyph outside the icon language.
+- `src/components/StatusBadge.jsx` — state classes are now BEM modifiers (`status-badge--active`), so a generic `.status-active` can no longer leak onto other elements.
+- `src/components/UserTable.jsx`, `PatientTable.jsx`, `TrendTable.jsx`, `BreakdownTable.jsx` — semantic tables: `<caption>`, `scope="col"`, labelled scroll regions, stacked mobile layout, sortable headers where it helps, and real button labels for row actions.
+- `src/components/AddUserForm.jsx`, `EditUserForm.jsx`, `AddPatientForm.jsx`, `EditPatientForm.jsx` — every control goes through `Field`; no placeholder-only inputs remain.
+- `src/components/PageHeader.jsx`, `PageActions.jsx`, `StatCard.jsx`, `SelectedUser.jsx`, `SelectedPatient.jsx` — rebuilt on tokens.
+- `src/pages/Dashboard.jsx`, `Users.jsx`, `Patients.jsx`, `Reports.jsx`, `Activity.jsx`, `Settings.jsx` — all six pages restyled. **Dashboard now uses the shared `PageHeader`** instead of hand-rolling the markup. **Settings was the last page converted** and is the only page that was still on the old markup when this phase began.
+- `src/hooks/useFocusTrap.js` — now takes a `focusTarget` so a dialog can focus the container itself (announcing its title) while the drawer still focuses its first link.
+
+### Verified (921 assertions, 0 failures; lint and build clean)
+
+- **Tokenisation is exhaustive and proven, not asserted.** The harness re-parses every CSS file and checks there is no hex/`rgb()`/`hsl()` literal and no raw spacing/geometry literal outside `tokens.css`. It then resolves **every** `var(--token)` back to a declaration — a typo'd token renders as *nothing*, which a "does it look tokenised" grep would miss — and confirms there are **no unused tokens**. It also confirms `index.css` is imports-only and in dependency order.
+- **Contrast is computed** from the real token values for 30 text and non-text pairs, including all four status badges and the focus ring. The status hues are additionally checked to differ **in luminance**, so they stay distinguishable in greyscale and for colour-blind readers.
+- **Locked geometry** is asserted from the tokens: 1px borders, 8/12/16px radii, 40px controls, no card shadow, and every spacing step on the 4px grid.
+- **Accessibility** is checked on rendered markup and source: labels bound by `for`/`id` or by wrapping, dialog role/modality/labelling/description, Tab + Shift+Tab cycling, Esc, focus restoration, scroll lock, `aria-sort`, `scope`, live regions, and that every icon name — literal *and* dynamic — resolves.
+- **Motion** is limited to a fixed allowlist of state-driven animations (`overlay-in`, `dialog-in`, `page-in`, `loading-pulse`), with no staggered or infinite decoration, and `prefers-reduced-motion` neutralising animation and transition.
+- **The viewport fix is exercised, not grepped.** A mock `window.matchMedia` is driven through subscribe → change → unsubscribe, proving the snapshot updates on a real change event and stops after unsubscribe, and that the legacy-Safari `addListener` path works. The layout is separately checked to hold no effects at all.
+- **No regression**: all 707 pre-Phase-7 assertions still pass (37 + 24 + 79 + 81 + 45 + 100 + 125 + 117 + 33 + 23 + 43), plus 214 new Phase 7 assertions.
+
+### Defects found and fixed during Phase 7 verification
+
+1. **Lint rejected the first drawer implementation.** The auto-close-on-widen was a `setState` in an effect, which causes a cascading render and is exactly the pattern `react-hooks/set-state-in-effect` exists to catch. Replaced with derived state. `useMediaQuery` had the same problem; replaced with `useSyncExternalStore`.
+2. **`starFilled` icon and every dynamic icon name were audited.** `Icon` returns `null` for an unknown name, so a typo would silently render nothing. All names now resolve and the harness checks the set on every run.
+3. **`.status-active` was a bare global class.** Renamed to `status-badge--active` to match the BEM convention used elsewhere and remove the collision risk.
+4. **The empty-state glyph was accent blue and commented as "purely decorative".** Changed to a muted monochrome glyph, since decorative accent colour is precisely what the brief rules out.
+5. **Eight tokens were dead** (`--font-mono`, `--radius-small`, `--border-width-strong`, `--shadow-popover`, `--space-16`, `--z-dropdown`, `--space-12`, and the PrimeReact bridge). Removed, and the two with a real consumer (`--focus-ring-width`, `--space-section-gap`) were wired instead.
+6. **Two Phase 6 assertions encoded the old appearance** (CSS-drawn hamburger, `2px` literal outline). Updated to assert the current, stricter truth (shared icon set; `var(--focus-ring-width)` resolving to 2px).
+
+### Flags
+
+1. **No headless browser was available, so nothing here is a rendered-pixel claim.** Verification is: computed contrast, computed cascade at three widths, DOM produced by server-rendering the real components, and source/CSS analysis. It is not a screenshot diff and should not be described as one.
+2. **The breakdown bar is the single inline style in the app** (`width: ${row.bar}%`). It is data-driven (`toBarPercent(count, max)`), decorative, and `aria-hidden`; the real figure is in the adjacent Share column. It is deliberately exempt from tokenisation and the harness asserts it stays data-driven.
+3. **Theme is still not implemented.** Settings still stores and displays a `light`/`dark` preference that has no effect. The Field hint now says so plainly rather than implying it works.
+4. **Two destructive actions remain non-undoable** (clear activity log, reset demo data). Both are behind dialogs that state the counts and are not recoverable.
+5. **The mobile drawer scrim is a focusable `<button aria-label="Close navigation">`.** This gives it a keyboard path but means a full-surface invisible control exists in the tab order while the drawer is open; a non-focusable backdrop plus an explicit close control would be leaner.
+6. **Fonts still come from Google Fonts** (`display=swap` + `preconnect`), so rendering depends on a third-party network call and the app is not fully self-contained offline.
+7. All Phase 1/2/3/3b/4/5/6 flags remain open as previously recorded, except those explicitly marked resolved above.

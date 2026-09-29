@@ -1,0 +1,249 @@
+/* ==========================================================================
+   APP SHELL — layout, navigation and responsiveness.
+   Sidebar 240px, header 64px, content padding 32px at desktop.
+   Borders establish structure. The active nav item is marked by colour AND
+   by weight AND by a rule, so the state is never colour-only.
+   ========================================================================== */
+
+.admin-layout {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  grid-template-rows: var(--header-height) 1fr;
+  min-height: 100vh;
+  background: var(--color-bg);
+}
+
+/* ---------------------------------------------------------------------
+   HEADER — functional, not dominant. Carries the mobile menu button.
+   --------------------------------------------------------------------- */
+
+.header {
+  grid-column: 1 / -1;
+  grid-row: 1;
+
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+
+  padding: 0 var(--space-6);
+  background: var(--color-bg);
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+/* The header title is deliberately small: the page owns the H1. */
+.header h1 {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0;
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-base);
+}
+
+/* Menu button: hidden on desktop, shown below 768px. */
+.header-menu-button {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
+  padding: 0;
+
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  border: var(--border-width) solid var(--color-border-control);
+  border-radius: var(--radius-control);
+
+  cursor: pointer;
+}
+
+.header-menu-button:hover {
+  background: var(--color-surface-muted);
+  border-color: var(--color-text-muted);
+}
+
+/* ---------------------------------------------------------------------
+   SIDEBAR — compact. The active item gets three non-colour-safe signals:
+   font weight, a left rule, and a subtle tinted surface.
+   --------------------------------------------------------------------- */
+
+.sidebar {
+  grid-column: 1;
+  grid-row: 2;
+
+  padding: var(--space-6) var(--space-4);
+  background: var(--color-bg);
+  border-right: var(--border-width) solid var(--color-border);
+  overflow-y: auto;
+}
+
+.sidebar ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar li {
+  margin-bottom: var(--space-1);
+}
+
+.nav-link {
+  display: block;
+  padding: var(--space-2) var(--space-3);
+  border-left: 2px solid transparent;
+  border-radius: var(--radius-control);
+
+  font-family: var(--font-body);
+  font-size: var(--font-size-nav);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-snug);
+
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+
+.nav-link:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.nav-link.active {
+  /* Colour signal */
+  background: var(--color-accent-subtle);
+  color: var(--color-accent);
+  border-left-color: var(--color-accent);
+  /* Non-colour signals: weight and the left rule above. */
+  font-weight: var(--font-weight-semibold);
+}
+
+.nav-link:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-accent);
+  outline-offset: var(--focus-ring-offset-inset);
+}
+
+/* Scrim behind the mobile drawer. Hidden on desktop. */
+.sidebar-scrim {
+  display: none;
+}
+
+/* ---------------------------------------------------------------------
+   CONTENT
+   --------------------------------------------------------------------- */
+
+.main-content {
+  grid-column: 2;
+  grid-row: 2;
+
+  padding: var(--content-padding);
+  min-width: 0; /* lets wide tables scroll instead of stretching the grid */
+  background: var(--color-bg);
+}
+
+/* ==========================================================================
+   RESPONSIVE
+
+   >= 1200px : full 240px sidebar                                        (default)
+   768-1199  : reduced sidebar, tighter padding
+   < 768px   : sidebar becomes a keyboard-accessible drawer
+   ========================================================================== */
+
+/* ---- 768px to 1199px: reduced sidebar, less padding ------------------- */
+@media (max-width: 1199px) {
+  .admin-layout {
+    grid-template-columns: var(--sidebar-width-reduced) 1fr;
+  }
+
+  .sidebar {
+    padding: var(--space-5) var(--space-3);
+  }
+
+  .main-content {
+    padding: var(--space-6);
+  }
+
+  .header {
+    padding: 0 var(--space-5);
+  }
+}
+
+/* ---- Below 768px: drawer --------------------------------------------- */
+@media (max-width: 767px) {
+  .admin-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: var(--header-height) 1fr;
+  }
+
+  .header {
+    padding: 0 var(--space-4);
+  }
+
+  .header h1 {
+    font-size: var(--font-size-caption);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .header-menu-button {
+    display: inline-flex;
+  }
+
+  /* The sidebar leaves the grid and becomes an overlay. */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: var(--z-drawer);
+
+    width: var(--sidebar-width);
+    max-width: var(--modal-width-max-viewport);
+
+    padding: var(--space-6) var(--space-4);
+    background: var(--color-bg);
+    border-right: var(--border-width) solid var(--color-border);
+
+    transform: translateX(-100%);
+    transition: transform var(--duration-base) var(--ease-standard);
+  }
+
+  .sidebar.is-open {
+    transform: translateX(0);
+    visibility: visible;
+  }
+
+  /* A closed drawer must be removed from the tab order and the a11y tree,
+     not merely moved off-screen. */
+  .sidebar:not(.is-open) {
+    visibility: hidden;
+  }
+
+  .main-content {
+    grid-column: 1;
+    padding: var(--space-5) var(--space-4);
+  }
+
+  /* Scrim only exists while the drawer is open. */
+  .sidebar-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-drawer-scrim);
+
+    background: var(--color-backdrop);
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+}
+
+/* The drawer must not animate for users who asked for less motion. */
+@media (max-width: 767px) and (prefers-reduced-motion: reduce) {
+  .sidebar {
+    transition: none;
+  }
+}

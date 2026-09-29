@@ -1,0 +1,210 @@
+/* ==========================================================================
+   LIBRARY DECISIONS (permanent)
+
+   The component layer is hand-built and token-driven. It is NOT a UI library.
+   Nothing here configures, bridges or prepares for an external component
+   library, and none is installed. Introducing one later would be a new
+   decision, not a continuation of this file.
+
+   Every visual value in the app resolves to a custom property declared below.
+   ========================================================================== */
+
+/* ==========================================================================
+   DESIGN TOKENS — the single source of truth for the visual system.
+   LOCKED system. Every value below is intentional; do not freestyle these.
+   Aesthetic: premium, sharp, modern, high-contrast, restrained, professional.
+   Not rounded, not colourful, not gradient- or shadow-heavy, not decorative.
+   ========================================================================== */
+
+:root {
+  /* ---------------------------------------------------------------------
+     COLOUR — monochrome scale + ONE electric blue accent.
+     Semantic success/warning/error are restrained and derived, not decorative.
+     All text pairings below meet WCAG AA (>= 4.5:1) on their stated surface.
+     --------------------------------------------------------------------- */
+
+  /* Monochrome surface + text */
+  --color-bg: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f7f8fa;
+  --color-surface-sunken: #f1f3f6;
+
+  --color-border: #e3e6ea;
+  --color-border-strong: #cdd3da;
+  /* Boundaries of interactive controls need >= 3:1 (WCAG 1.4.11), which
+     --color-border-strong does not reach. Use this for input/button edges.
+     Decorative dividers can use --color-border-strong. */
+  --color-border-control: #828b98;
+
+  --color-text-primary: #0b0f14;    /* 19.4:1 on --color-bg */
+  --color-text-secondary: #4a5361;  /*  7.8:1 on --color-bg */
+  --color-text-muted: #636c78;      /*  5.3:1 on --color-bg */
+  --color-text-inverse: #ffffff;
+
+  /* The single accent */
+  --color-accent: #0a5cff;          /*  5.3:1 on --color-bg */
+  --color-accent-hover: #0847cc;
+  --color-accent-active: #063aa8;
+  --color-accent-subtle: #eef3ff;   /*  4.7:1 with --color-accent on it */
+  --color-accent-border: #b9ccff;
+
+  /* Semantic — restrained, used for state only */
+  --color-success: #0e7c4a;         /*  5.3:1 on --color-bg */
+  --color-success-subtle: #e6f5ec;
+  --color-warning: #8a5a00;         /*  5.9:1 on --color-bg */
+  --color-warning-subtle: #fdf3e2;
+  --color-error: #b3261e;           /*  6.5:1 on --color-bg */
+  --color-error-subtle: #fcedec;
+  --color-error-hover: #8f1e18;
+
+  /* Scrim behind the dialog and the mobile drawer. Kept as a token because it
+     is the one translucent value in the system. */
+  --color-backdrop: rgba(11, 15, 20, 0.4);
+
+  /* ---------------------------------------------------------------------
+     TYPOGRAPHY
+     Poppins is NOT global. It is scoped to headings and metrics only.
+     Inter carries everything else.
+     --------------------------------------------------------------------- */
+  --font-heading: "Poppins", "Inter", system-ui, -apple-system, "Segoe UI",
+    sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto,
+    sans-serif;
+
+  --font-size-h1: 32px;
+  --font-size-h2: 24px;
+  --font-size-h3: 18px;
+  --font-size-metric: 40px;
+  --font-size-metric-sm: 36px;
+
+  --font-size-body: 14px;
+  --font-size-nav: 14px;
+  --font-size-table: 14px;
+  --font-size-caption: 12px;
+  --font-size-label: 12px;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.2;
+  --line-height-snug: 1.35;
+  --line-height-base: 1.5;
+
+  --letter-spacing-heading: -0.02em;
+  --letter-spacing-label: 0.04em;
+
+  /* ---------------------------------------------------------------------
+     RADIUS — sharp by design. Only pills are fully round.
+     --------------------------------------------------------------------- */    /* badges, small elements */
+  --radius-control: 8px;  /* inputs, buttons */
+  --radius-card: 12px;    /* cards */
+  --radius-dialog: 16px;  /* dialogs */
+  --radius-pill: 999px;
+
+  /* ---------------------------------------------------------------------
+     BORDERS & ELEVATION
+     Borders establish structure. Shadows establish elevation — and only
+     where something genuinely floats above the page.
+     --------------------------------------------------------------------- */
+  --border-width: 1px;
+
+  --shadow-none: none;                                    /* cards: no shadow */    /* dropdowns */
+  --shadow-dialog: 0 16px 48px rgba(11, 15, 20, 0.16);    /* dialogs */
+
+  /* ---------------------------------------------------------------------
+     SPACING — 4px grid. Favour 8 / 12 / 16 / 24 / 32.
+     --------------------------------------------------------------------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  --space-card-padding: var(--space-5);
+  --space-section-gap: var(--space-8);
+
+  /* ---------------------------------------------------------------------
+     APP SHELL
+     --------------------------------------------------------------------- */
+  --sidebar-width: 240px;
+  --sidebar-width-reduced: 200px;
+  --header-height: 64px;
+  --content-padding: var(--space-8);
+
+  --control-height: 40px;
+  --control-height-sm: 34px;
+
+  /* ---------------------------------------------------------------------
+     LAYERS
+     --------------------------------------------------------------------- */
+  --z-drawer-scrim: 800;
+  --z-drawer: 900;
+  --z-dialog: 1000;
+
+  /* ---------------------------------------------------------------------
+     MOTION — minimal and always overridable.
+     --------------------------------------------------------------------- */
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  /* ---------------------------------------------------------------------
+     COMPONENTS — geometry only. No colour lives here.
+     --------------------------------------------------------------------- */
+  --control-height-lg: 44px;  /* primary actions on touch / mobile */
+  --table-header-height: 44px;
+  --table-row-height: 52px;
+  --table-cell-padding-y: var(--space-3);
+  --table-cell-padding-x: var(--space-4);
+  --icon-size: 16px;
+  --icon-size-sm: 14px;
+  --icon-stroke-width: 1.5;
+  --modal-width: 500px;
+  --modal-width-max-viewport: 84vw;
+
+  /* Focus ring: one shared geometry for every focusable element. */
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+  --focus-ring-offset-inset: -2px;
+
+  /* Form controls and indicators. */
+  --checkbox-size: 18px;
+  --status-dot-size: 6px;
+  --status-dot-size-sm: 10px;
+  --notice-accent-width: 3px;
+  --measure-text: 46ch;
+
+  /* The proportional bar in report breakdowns. The Share column carries the
+     real number, so this is presentation only. */
+  --bar-height: 8px;
+  --bar-width-min: 80px;
+  --bar-width-max: 160px;
+
+  /* ---------------------------------------------------------------------
+     STATUS — the four record states.
+
+     Colour is never the only signal: every badge renders its status as text,
+     and each of the four has a distinct hue, so they stay distinguishable in
+     greyscale and for colour-blind readers.
+
+       Active      success green  — in service
+       Discharged  electric blue  — left care, still a valid record
+       Pending     warning amber  — needs review
+       Inactive    neutral grey   — deliberately NOT red; an inactive staff
+                                  account is not an error condition
+     --------------------------------------------------------------------- */
+  --color-status-active: var(--color-success);
+  --color-status-active-bg: var(--color-success-subtle);
+  --color-status-discharged: var(--color-accent);
+  --color-status-discharged-bg: var(--color-accent-subtle);
+  --color-status-pending: var(--color-warning);
+  --color-status-pending-bg: var(--color-warning-subtle);
+  --color-status-inactive: var(--color-text-secondary);
+  --color-status-inactive-bg: var(--color-surface-sunken);
+}
+

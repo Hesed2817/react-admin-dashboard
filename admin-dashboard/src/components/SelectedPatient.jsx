@@ -1,3 +1,5 @@
+import { Avatar } from "./Avatar";
+import { StatusBadge } from "./StatusBadge";
 import { calculateAge } from "../utils/patients";
 
 function SelectedPatient({
@@ -15,18 +17,49 @@ function SelectedPatient({
   const age = calculateAge(dateOfBirth);
 
   return (
-    <div className="selected-user">
-      <h2>Selected Patient</h2>
-      <p>Name: {name}</p>
-      <p>Email: {email}</p>
-      <p>Phone: {phone}</p>
-      <p>Age: {age === null ? "—" : age}</p>
-      <p>Gender: {gender}</p>
-      <p>Status: {status}</p>
-      <p>Date of Birth: {dateOfBirth || "—"}</p>
-      <p>Last Visit: {lastVisit || "—"}</p>
-      <p>Created At: {createdAt ? createdAt.slice(0, 10) : "—"}</p>
-    </div>
+    <section className="detail-panel" aria-label="Selected patient">
+      <div className="detail-panel__header">
+        <Avatar name={name} />
+        <h2>{name}</h2>
+      </div>
+
+      <dl className="detail-list">
+        <div>
+          <dt>Email</dt>
+          <dd>{email || "—"}</dd>
+        </div>
+        <div>
+          <dt>Phone</dt>
+          <dd>{phone || "—"}</dd>
+        </div>
+        <div>
+          <dt>Age</dt>
+          <dd>{age === null ? "—" : age}</dd>
+        </div>
+        <div>
+          <dt>Gender</dt>
+          <dd>{gender || "—"}</dd>
+        </div>
+        <div>
+          <dt>Status</dt>
+          <dd>
+            <StatusBadge status={status} />
+          </dd>
+        </div>
+        <div>
+          <dt>Date of birth</dt>
+          <dd>{dateOfBirth || "—"}</dd>
+        </div>
+        <div>
+          <dt>Last visit</dt>
+          <dd>{lastVisit || "—"}</dd>
+        </div>
+        <div>
+          <dt>Created</dt>
+          <dd>{createdAt ? createdAt.slice(0, 10) : "—"}</dd>
+        </div>
+      </dl>
+    </section>
   );
 }
 

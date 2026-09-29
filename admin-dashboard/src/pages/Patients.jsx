@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { AddPatientForm } from "../components/AddPatientForm";
+import { Button } from "../components/Button";
 import { EditPatientForm } from "../components/EditPatientForm";
+import { EmptyState } from "../components/EmptyState";
+import { Field } from "../components/Field";
+import { Icon } from "../components/Icon";
 import { Modal } from "../components/Modal";
 import { PageActions } from "../components/PageActions";
 import { PageHeader } from "../components/PageHeader";
@@ -42,8 +46,7 @@ function Patients() {
   }
 
   function handleEditPatient(id) {
-    const patient = patients.find((patient) => patient.id === id);
-    setEditingPatient(patient);
+    setEditingPatient(patients.find((patient) => patient.id === id));
   }
 
   function handleSavePatient(updatedPatient) {
@@ -52,8 +55,7 @@ function Patients() {
   }
 
   function handleDeletePatient(id) {
-    const patient = patients.find((patient) => patient.id === id);
-    setPatientToDelete(patient);
+    setPatientToDelete(patients.find((patient) => patient.id === id));
     setIsDeleteModalOpen(true);
   }
 
@@ -83,48 +85,74 @@ function Patients() {
         title="Patients"
         description="Manage and view registered patients"
       >
-        <PageActions>
-          <select
-            name="patient-status-filter"
-            id="patient-filter"
-            value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
-          >
-            <option value={ALL_STATUSES}>All</option>
-            {PATIENT_STATUS_OPTIONS.map((status) => (
-              <option key={status} value={status}>
-                {status}
-              </option>
-            ))}
-          </select>
+        <PageActions label="Patient filters and search">
+          <Field label="Status">
+            {(controlProps) => (
+              <select
+                className="field-control"
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value)}
+                {...controlProps}
+              >
+                <option value={ALL_STATUSES}>All statuses</option>
+                {PATIENT_STATUS_OPTIONS.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            )}
+          </Field>
 
-          <input
-            type="text"
-            placeholder="Search patients..."
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-          />
-          <button type="button" onClick={handleAddPatientModal}>
-            Add Patient
-          </button>
+          <Field label="Search patients" className="search-field">
+            {(controlProps) => (
+              <>
+                <Icon name="search" />
+                <input
+                  type="text"
+                  className="field-control"
+                  placeholder="Name, email or phone"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  {...controlProps}
+                />
+              </>
+            )}
+          </Field>
+
+          <div className="page-actions__primary">
+            <Button variant="primary" onClick={handleAddPatientModal}>
+              <Icon name="plus" />
+              Add Patient
+            </Button>
+          </div>
         </PageActions>
       </PageHeader>
 
       {isAddPatientModalOpen && (
-        <Modal onClose={() => setIsAddPatientModalOpen(false)}>
+        <Modal title="Add patient" onClose={() => setIsAddPatientModalOpen(false)}>
           <AddPatientForm onAddPatient={handleAddPatient} />
         </Modal>
       )}
 
-      {isDeleteModalOpen && (
-        <Modal onClose={handleCancelDelete} onConfirm={handleConfirmDelete}>
-          <h3>Delete Patient</h3>
-          <p>Are you sure you want to delete {patientToDelete.name}?</p>
+      {isDeleteModalOpen && patientToDelete && (
+        <Modal
+          title="Delete patient"
+          onClose={handleCancelDelete}
+          onConfirm={handleConfirmDelete}
+          confirmLabel="Delete patient"
+          confirmVariant="danger"
+        >
+          <p>
+            Are you sure you want to delete{" "}
+            <strong>{patientToDelete.name}</strong>? This permanently removes the
+            record and cannot be undone.
+          </p>
         </Modal>
       )}
 
       {editingPatient && (
-        <Modal onClose={() => setEditingPatient(null)}>
+        <Modal title="Edit patient" onClose={() => setEditingPatient(null)}>
           <EditPatientForm
             key={editingPatient.id}
             onSave={handleSavePatient}
@@ -134,26 +162,41 @@ function Patients() {
       )}
 
       {loading ? (
-        <p>Loading patients...</p>
+        <div className="loading" role="status" aria-live="polite">
+          <span>Loading patients...</span>
+          <span className="loading__bar" />
+        </div>
       ) : error ? (
-        <p>{error}</p>
+        <p className="inline-message inline-message--error" role="alert">
+          {error}
+        </p>
+      ) : patients.length === 0 ? (
+        <EmptyState
+          title="No patients yet"
+          message="Add your first patient to get started."
+          icon="plus"
+        >
+          <Button variant="primary" onClick={handleAddPatientModal}>
+            <Icon name="plus" />
+            Add Patient
+          </Button>
+        </EmptyState>
+      ) : filteredPatients.length === 0 ? (
+        <EmptyState
+          title="No matches"
+          message="No patients match the current search and filters."
+          icon="search"
+        />
       ) : (
-        <>
-          {patients.length === 0 ? (
-            <p>No patients yet. Add your first patient to get started.</p>
-          ) : filteredPatients.length === 0 ? (
-            <p>No patients match the current search and filters.</p>
-          ) : (
-            <PatientTable
-              patients={filteredPatients}
-              onViewPatient={handleViewPatient}
-              onEditPatient={handleEditPatient}
-              onDeletePatient={handleDeletePatient}
-            />
-          )}
-          {selectedPatient && <SelectedPatient patient={selectedPatient} />}
-        </>
+        <PatientTable
+          patients={filteredPatients}
+          onViewPatient={handleViewPatient}
+          onEditPatient={handleEditPatient}
+          onDeletePatient={handleDeletePatient}
+        />
       )}
+
+      {selectedPatient && <SelectedPatient patient={selectedPatient} />}
     </div>
   );
 }

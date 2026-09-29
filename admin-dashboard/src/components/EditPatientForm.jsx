@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { Button } from "./Button";
+import { Field } from "./Field";
 import { validatePatient } from "../utils/patients";
 import { PATIENT_STATUS_OPTIONS } from "../constants/statuses";
 import { GENDER_OPTIONS } from "../constants/genders";
@@ -38,59 +40,97 @@ function EditPatientForm({ patient, onSave }) {
   }
 
   return (
-    <form className="edit-user-form" onSubmit={handleSavePatient} noValidate>
-      <input
-        type="text"
-        value={editedName}
-        onChange={(event) => setEditedName(event.target.value)}
-      />
-      {errors.name && <p>{errors.name}</p>}
+    <form className="form" onSubmit={handleSavePatient} noValidate>
+      <div className="form-grid">
+        <Field label="Name" error={errors.name} className="field--full">
+          {(controlProps) => (
+            <input
+              type="text"
+              className="field-control"
+              value={editedName}
+              onChange={(event) => setEditedName(event.target.value)}
+              {...controlProps}
+            />
+          )}
+        </Field>
 
-      <input
-        type="date"
-        value={editedDateOfBirth}
-        onChange={(event) => setEditedDateOfBirth(event.target.value)}
-      />
-      {errors.dateOfBirth && <p>{errors.dateOfBirth}</p>}
+        <Field label="Date of birth" error={errors.dateOfBirth}>
+          {(controlProps) => (
+            <input
+              type="date"
+              className="field-control"
+              value={editedDateOfBirth}
+              onChange={(event) => setEditedDateOfBirth(event.target.value)}
+              {...controlProps}
+            />
+          )}
+        </Field>
 
-      <select
-        value={editedGender}
-        onChange={(event) => setEditedGender(event.target.value)}
-      >
-        {GENDER_OPTIONS.map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
-      </select>
-      {errors.gender && <p>{errors.gender}</p>}
+        <Field label="Gender" error={errors.gender}>
+          {(controlProps) => (
+            <select
+              className="field-control"
+              value={editedGender}
+              onChange={(event) => setEditedGender(event.target.value)}
+              {...controlProps}
+            >
+              <option value="">Select gender</option>
+              {GENDER_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          )}
+        </Field>
 
-      <input
-        type="tel"
-        value={editedPhone}
-        onChange={(event) => setEditedPhone(event.target.value)}
-      />
-      {errors.phone && <p>{errors.phone}</p>}
+        <Field label="Phone" error={errors.phone}>
+          {(controlProps) => (
+            <input
+              type="tel"
+              className="field-control"
+              value={editedPhone}
+              onChange={(event) => setEditedPhone(event.target.value)}
+              {...controlProps}
+            />
+          )}
+        </Field>
 
-      <input
-        type="email"
-        value={editedEmail}
-        onChange={(event) => setEditedEmail(event.target.value)}
-      />
-      {errors.email && <p>{errors.email}</p>}
+        <Field label="Email" error={errors.email}>
+          {(controlProps) => (
+            <input
+              type="email"
+              className="field-control"
+              value={editedEmail}
+              onChange={(event) => setEditedEmail(event.target.value)}
+              {...controlProps}
+            />
+          )}
+        </Field>
 
-      <select
-        value={editedStatus}
-        onChange={(event) => setEditedStatus(event.target.value)}
-      >
-        {PATIENT_STATUS_OPTIONS.map((option) => (
-          <option key={option} value={option}>
-            {option}
-          </option>
-        ))}
-      </select>
+        <Field label="Status" error={errors.status} className="field--full">
+          {(controlProps) => (
+            <select
+              className="field-control"
+              value={editedStatus}
+              onChange={(event) => setEditedStatus(event.target.value)}
+              {...controlProps}
+            >
+              {PATIENT_STATUS_OPTIONS.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </select>
+          )}
+        </Field>
+      </div>
 
-      <button type="submit">Save Changes</button>
+      <div className="form-actions">
+        <Button type="submit" variant="primary">
+          Save Changes
+        </Button>
+      </div>
     </form>
   );
 }

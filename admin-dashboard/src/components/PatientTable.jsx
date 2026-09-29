@@ -1,5 +1,22 @@
+import { Button } from "./Button";
+import { Icon } from "./Icon";
 import { StatusBadge } from "./StatusBadge";
+import { TableScroll, SortableTh, Th } from "./Table";
+import { useTableSort } from "../hooks/useTableSort";
 import { calculateAge } from "../utils/patients";
+
+const COLUMNS = [
+  { key: "name", label: "Name" },
+  { key: "email", label: "Email" },
+  { key: "phone", label: "Phone", sortValue: (p) => p.phone },
+  {
+    key: "age",
+    label: "Age",
+    sortValue: (patient) => calculateAge(patient.dateOfBirth),
+  },
+  { key: "gender", label: "Gender" },
+  { key: "status", label: "Status" },
+];
 
 function PatientTable({
   patients,
@@ -7,41 +24,90 @@ function PatientTable({
   onEditPatient,
   onDeletePatient,
 }) {
+  const { sortedRows, toggleSort, getAriaSort } = useTableSort(
+    patients,
+    COLUMNS,
+    "name",
+  );
+
   return (
-    <table className="user-table">
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Phone</th>
-          <th>Age</th>
-          <th>Gender</th>
-          <th>Status</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {patients.map(
-          ({ id, name, email, phone, dateOfBirth, gender, status }) => (
-            <tr key={id}>
-              <td>{name}</td>
-              <td>{email}</td>
-              <td>{phone}</td>
-              <td>{calculateAge(dateOfBirth) ?? "—"}</td>
-              <td>{gender}</td>
-              <td>
-                <StatusBadge status={status} />
-              </td>
-              <td>
-                <button onClick={() => onViewPatient(id)}>View</button>
-                <button onClick={() => onEditPatient(id)}>Edit</button>
-                <button onClick={() => onDeletePatient(id)}>Delete</button>
-              </td>
-            </tr>
-          ),
-        )}
-      </tbody>
-    </table>
+    <TableScroll label="Patients table">
+      <table className="data-table data-table--stack">
+        <caption>
+          {patients.length} {patients.length === 1 ? "patient" : "patients"},
+          sorted by column
+        </caption>
+        <thead>
+          <tr>
+            {COLUMNS.map((column) => (
+              <SortableTh
+                key={column.key}
+                columnKey={column.key}
+                label={column.label}
+                getAriaSort={getAriaSort}
+                onToggle={toggleSort}
+              />
+            ))}
+            <Th label="Actions" />
+          </tr>
+        </thead>
+        <tbody>
+          {sortedRows.map((patient) => {
+            const age = calculateAge(patient.dateOfBirth);
+
+            return (
+              <tr key={patient.id}>
+                <td data-label="Name">{patient.name}</td>
+                <td data-label="Email" className="cell-muted">
+                  {patient.email}
+                </td>
+                <td data-label="Phone" className="cell-muted">
+                  {patient.phone}
+                </td>
+                <td data-label="Age" className="cell-numeric">
+                  {age === null ? "—" : age}
+                </td>
+                <td data-label="Gender">{patient.gender}</td>
+                <td data-label="Status">
+                  <StatusBadge status={patient.status} />
+                </td>
+                <td data-label="Actions">
+                  <div className="table-actions">
+                    <Button
+                      size="sm"
+                      className="btn-row-action"
+                      onClick={() => onViewPatient(patient.id)}
+                      aria-label={`View ${patient.name}`}
+                    >
+                      <Icon name="view" />
+                      View
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="btn-row-action"
+                      onClick={() => onEditPatient(patient.id)}
+                      aria-label={`Edit ${patient.name}`}
+                    >
+                      <Icon name="edit" />
+                      Edit
+                    </Button>
+                    <Button
+                      size="sm"
+                      className="btn-row-action btn-row-action--danger"
+                      onClick={() => onDeletePatient(patient.id)}
+                      aria-label={`Delete ${patient.name}`}
+                    >
+                      <Icon name="trash" />
+                      Delete
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </TableScroll>
   );
 }
 

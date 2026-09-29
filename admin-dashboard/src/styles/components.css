@@ -1,0 +1,1147 @@
+/* ==========================================================================
+   COMPONENTS — shared, token-driven, no page-specific rules.
+
+   Every colour, radius, spacing and duration below resolves to a custom
+   property from tokens.css. There are no raw values in this file that could
+   drift from the design system.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------------
+   UTILITY
+   --------------------------------------------------------------------- */
+
+/* Visually hidden but available to assistive technology. */
+.sr-only {
+  position: absolute;
+  width: var(--border-width);
+  height: var(--border-width);
+  padding: 0;
+  margin: calc(var(--border-width) * -1);
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------------------------------------------------------------------
+   BUTTONS — 8px radius. Heights 32 / 40 (default) / 44.
+   Three intents only: primary, secondary, destructive. Nothing decorative.
+   --------------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+
+  height: var(--control-height);
+  padding: 0 var(--space-4);
+
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  border: var(--border-width) solid var(--color-border-control);
+  border-radius: var(--radius-control);
+
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
+}
+
+.btn:hover {
+  background: var(--color-surface-muted);
+}
+
+.btn:active {
+  background: var(--color-surface-sunken);
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.btn:disabled:hover {
+  background: var(--color-surface);
+}
+
+/* Primary — the single electric blue action on a view. */
+.btn-primary {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-text-inverse);
+}
+
+.btn-primary:hover {
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+}
+
+.btn-primary:active {
+  background: var(--color-accent-active);
+  border-color: var(--color-accent-active);
+}
+
+.btn-primary:disabled:hover {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+/* Destructive — only for actions that destroy data. */
+.btn-danger {
+  background: var(--color-error);
+  border-color: var(--color-error);
+  color: var(--color-text-inverse);
+}
+
+.btn-danger:hover {
+  background: var(--color-error-hover);
+  border-color: var(--color-error-hover);
+}
+
+.btn-danger:active {
+  background: var(--color-error-hover);
+  border-color: var(--color-error-hover);
+}
+
+/* Quiet — for tertiary actions inside a dialog footer or a table row. */
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-text-secondary);
+}
+
+.btn-ghost:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text-primary);
+}
+
+.btn-sm {
+  height: var(--control-height-sm);
+  padding: 0 var(--space-3);
+  font-size: var(--font-size-caption);
+}
+
+.btn-lg {
+  height: var(--control-height-lg);
+  padding: 0 var(--space-5);
+  font-size: var(--font-size-body);
+}
+
+/* Table row actions: compact, subordinate to the row label. */
+.btn-row-action {
+  height: var(--control-height-sm);
+  padding: 0 var(--space-2);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  border-color: transparent;
+  background: transparent;
+}
+
+.btn-row-action:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+}
+
+.btn-row-action--danger:hover {
+  background: var(--color-error-subtle);
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+/* ---------------------------------------------------------------------
+   ICONS — one set, 16px, 1.5px stroke, always subordinate to its label.
+   Icons are decorative: every icon sits beside a real text label, so it is
+   marked aria-hidden at the call site and never carries meaning alone.
+   --------------------------------------------------------------------- */
+
+.icon {
+  width: var(--icon-size);
+  height: var(--icon-size);
+  flex: 0 0 auto;
+  stroke: currentColor;
+  stroke-width: var(--icon-stroke-width);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+/* ---------------------------------------------------------------------
+   FIELDS — 40px controls, 8px radius, 1px border, Inter.
+   Every control has a real <label>; placeholder is never the only label.
+   --------------------------------------------------------------------- */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.field-label {
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-label);
+  color: var(--color-text-secondary);
+}
+
+.field-control {
+  width: 100%;
+  height: var(--control-height);
+  padding: 0 var(--space-3);
+
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border-control);
+  border-radius: var(--radius-control);
+
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard);
+}
+
+textarea.field-control {
+  height: auto;
+  min-height: var(--control-height-lg);
+  padding: var(--space-3);
+  line-height: var(--line-height-base);
+  resize: vertical;
+}
+
+select.field-control {
+  /* Room for the native chevron on the right. */
+  padding-right: var(--space-8);
+  cursor: pointer;
+  appearance: none;
+  background-image: none;
+}
+
+.field-control::placeholder {
+  color: var(--color-text-muted);
+}
+
+.field-control:hover {
+  border-color: var(--color-text-muted);
+}
+
+/* Electric blue focus border. The ring comes from the global :focus-visible
+   rule in base.css, so there is no glow. */
+.field-control:focus {
+  border-color: var(--color-accent);
+  outline: var(--focus-ring-width) solid var(--color-accent);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.field-control[aria-invalid="true"] {
+  border-color: var(--color-error);
+}
+
+.field-control[aria-invalid="true"]:focus {
+  outline-color: var(--color-error);
+}
+
+.field-error {
+  margin: 0;
+  font-size: var(--font-size-caption);
+  color: var(--color-error);
+}
+
+.field-hint {
+  margin: 0;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+
+/* Checkbox rows — label and control stay in one clickable line. */
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  cursor: pointer;
+}
+
+.checkbox-field input {
+  width: var(--checkbox-size);
+  height: var(--checkbox-size);
+  flex: 0 0 auto;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+.checkbox-field span {
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+}
+
+/* Search box with a leading icon. */
+.search-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.search-field .icon {
+  position: absolute;
+  left: var(--space-3);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.search-field .field-control {
+  padding-left: calc(var(--space-3) * 2 + var(--icon-size) + var(--space-2));
+}
+
+/* ---------------------------------------------------------------------
+   FORMS
+   --------------------------------------------------------------------- */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.form-grid > .field--full {
+  grid-column: 1 / -1;
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+@media (max-width: 767px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   CARDS — 1px border, 12px radius, no shadow. Used only where grouping
+   genuinely helps; long lists and tables are not boxed.
+   --------------------------------------------------------------------- */
+
+.card {
+  padding: var(--space-card-padding);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-none);
+}
+
+/* ---------------------------------------------------------------------
+   STAT CARDS — compact. Poppins is used for the metric only.
+   --------------------------------------------------------------------- */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+@media (max-width: 1199px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+}
+
+.stat-card {
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-none);
+}
+
+.stat-card__label {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--letter-spacing-label);
+  color: var(--color-text-secondary);
+}
+
+/* The metric. Poppins, large, bold — the one place display type is used
+   outside a heading. */
+.stat-card__value {
+  margin: var(--space-1) 0 0;
+  font-family: var(--font-heading);
+  font-size: var(--font-size-metric-sm);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-heading);
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-card__description {
+  margin: var(--space-1) 0 0;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+
+/* ---------------------------------------------------------------------
+   STATUS BADGES — colour plus text, never colour alone.
+   All four states have a distinct hue and all four render their label.
+   --------------------------------------------------------------------- */
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-snug);
+  white-space: nowrap;
+}
+
+/* A filled dot gives a second, non-textual shape cue. */
+.status-badge::before {
+  content: "";
+  width: var(--status-dot-size);
+  height: var(--status-dot-size);
+  flex: 0 0 auto;
+  border-radius: var(--radius-pill);
+  background: currentColor;
+}
+
+.status-badge--active {
+  background: var(--color-status-active-bg);
+  color: var(--color-status-active);
+}
+
+.status-badge--discharged {
+  background: var(--color-status-discharged-bg);
+  color: var(--color-status-discharged);
+}
+
+.status-badge--pending {
+  background: var(--color-status-pending-bg);
+  color: var(--color-status-pending);
+}
+
+.status-badge--inactive {
+  background: var(--color-status-inactive-bg);
+  color: var(--color-status-inactive);
+}
+
+/* ---------------------------------------------------------------------
+   TABLES — header 44px, rows 52px, cell padding 12/16px.
+   Subtle row separators, restrained hover, no boxed rows.
+   Wide tables scroll horizontally rather than being squeezed.
+   --------------------------------------------------------------------- */
+
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-table);
+}
+
+.data-table caption {
+  padding: var(--space-3) var(--table-cell-padding-x);
+  text-align: left;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.data-table thead th {
+  height: var(--table-header-height);
+  padding: var(--table-cell-padding-y) var(--table-cell-padding-x);
+  text-align: left;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-label);
+  color: var(--color-text-secondary);
+  background: var(--color-surface-muted);
+  border-bottom: var(--border-width) solid var(--color-border);
+  white-space: nowrap;
+}
+
+.data-table tbody td {
+  height: var(--table-row-height);
+  padding: var(--table-cell-padding-y) var(--table-cell-padding-x);
+  border-bottom: var(--border-width) solid var(--color-border);
+  color: var(--color-text-primary);
+  vertical-align: middle;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* Restrained hover: a surface change only, no lift, no shadow. */
+.data-table tbody tr:hover td {
+  background: var(--color-surface-muted);
+}
+
+.data-table .cell-numeric {
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table .cell-muted {
+  color: var(--color-text-secondary);
+}
+
+.table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+/* Sortable header control. aria-sort lives on the <th>. */
+.th-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.th-sort:hover {
+  color: var(--color-text-primary);
+}
+
+.th-sort .icon {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  color: var(--color-text-muted);
+}
+
+th[aria-sort="ascending"] .th-sort .icon,
+th[aria-sort="descending"] .th-sort .icon {
+  color: var(--color-accent);
+}
+
+/* ---- Stacked layout below 768px -------------------------------------
+   Each record becomes a label/value list. The row keeps a single bottom
+   rule, so this is still one list, not a stack of boxed cards.
+   ------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .data-table--stack thead {
+    position: absolute;
+    width: var(--border-width);
+    height: var(--border-width);
+    padding: 0;
+    margin: calc(var(--border-width) * -1);
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .data-table--stack,
+  .data-table--stack tbody,
+  .data-table--stack tr,
+  .data-table--stack td {
+    display: block;
+    width: 100%;
+  }
+
+  .data-table--stack tr {
+    border-bottom: var(--border-width) solid var(--color-border);
+  }
+
+  .data-table--stack tr:last-child {
+    border-bottom: 0;
+  }
+
+  .data-table--stack td {
+    display: grid;
+    grid-template-columns: minmax(5rem, 40%) 1fr;
+    align-items: baseline;
+    gap: var(--space-3);
+    height: auto;
+    padding: var(--space-2) var(--space-4);
+    border-bottom: 0;
+  }
+
+  .data-table--stack td::before {
+    content: attr(data-label);
+    font-size: var(--font-size-caption);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--letter-spacing-label);
+    color: var(--color-text-secondary);
+  }
+
+  .data-table--stack tr:hover td {
+    background: transparent;
+  }
+}
+
+/* ---- Pagination ------------------------------------------------------ */
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.pagination__status {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+}
+
+.pagination__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pagination__page-size {
+  width: auto;
+  height: var(--control-height-sm);
+  padding-right: var(--space-6);
+  font-size: var(--font-size-caption);
+}
+
+@media (max-width: 767px) {
+  .pagination {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .pagination__controls {
+    justify-content: center;
+  }
+}
+
+/* ---- Breakdown bar (decorative; the Share column is the real number) -- */
+
+.breakdown-bar {
+  display: block;
+  width: 100%;
+  min-width: var(--bar-width-min);
+  max-width: var(--bar-width-max);
+  height: var(--bar-height);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-sunken);
+  overflow: hidden;
+}
+
+.breakdown-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+}
+
+/* ---------------------------------------------------------------------
+   ACTIVITY LIST — a clean list, not a table of bullets.
+   --------------------------------------------------------------------- */
+
+.activity-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: var(--border-width) solid var(--color-border);
+}
+
+.activity-list__item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.activity-list__message {
+  min-width: 0;
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+}
+
+.activity-list__time {
+  flex: 0 0 auto;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  .activity-list__item {
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+}
+
+/* ---------------------------------------------------------------------
+   DETAIL PANEL — shown when a record is selected.
+   --------------------------------------------------------------------- */
+
+.detail-panel {
+  margin-top: var(--space-8);
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-none);
+}
+
+.detail-panel__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.detail-panel__header h2 {
+  margin: 0;
+  font-size: var(--font-size-h3);
+}
+
+/* Functional identifier, not decoration: initials from the record's name. */
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-height);
+  height: var(--control-height);
+  flex: 0 0 auto;
+
+  font-family: var(--font-body);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+
+  color: var(--color-text-primary);
+  background: var(--color-surface-sunken);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-control);
+}
+
+.detail-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-6);
+  margin: 0;
+}
+
+.detail-list div {
+  min-width: 0;
+}
+
+.detail-list dt {
+  margin: 0 0 var(--space-1);
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-label);
+  color: var(--color-text-secondary);
+}
+
+.detail-list dd {
+  margin: 0;
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 767px) {
+  .detail-list {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+}
+
+/* ---------------------------------------------------------------------
+   EMPTY STATES — minimal monochrome line, optional subtle blue accent.
+   --------------------------------------------------------------------- */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-8) var(--space-5);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+}
+
+.empty-state__icon {
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-1);
+}
+
+.empty-state__title {
+  font-family: var(--font-heading);
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+}
+
+.empty-state__message {
+  margin: 0;
+  max-width: var(--measure-text);
+  font-size: var(--font-size-body);
+  color: var(--color-text-secondary);
+}
+
+/* ---------------------------------------------------------------------
+   INLINE MESSAGE — save confirmations and errors.
+   --------------------------------------------------------------------- */
+
+.inline-message {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width) solid var(--color-accent-border);
+  border-left-width: var(--notice-accent-width);
+  border-radius: var(--radius-control);
+  background: var(--color-accent-subtle);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-body);
+}
+
+.inline-message--error {
+  border-color: var(--color-error);
+  background: var(--color-error-subtle);
+  color: var(--color-error);
+}
+
+/* ---------------------------------------------------------------------
+   MODAL — 16px radius, 1px border, moderate shadow, calm backdrop.
+   --------------------------------------------------------------------- */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-dialog);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-5);
+
+  background: var(--color-backdrop);
+  animation: overlay-in var(--duration-base) var(--ease-standard) both;
+}
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+
+  width: min(var(--modal-width), 100%);
+  max-height: calc(100vh - var(--space-10));
+  padding: var(--space-6);
+
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-dialog);
+  box-shadow: var(--shadow-dialog);
+
+  animation: dialog-in var(--duration-base) var(--ease-standard) both;
+}
+
+.modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.modal__title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+}
+
+.modal__body {
+  font-size: var(--font-size-body);
+  color: var(--color-text-secondary);
+  overflow-y: auto;
+}
+
+.modal__body > :first-child {
+  margin-top: 0;
+}
+
+.modal__body > :last-child {
+  margin-bottom: 0;
+}
+
+.modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding-top: var(--space-1);
+}
+
+.modal__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
+  flex: 0 0 auto;
+  padding: 0;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+
+.modal__close:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+}
+
+@media (max-width: 767px) {
+  .modal {
+    padding: var(--space-5);
+    max-height: calc(100vh - var(--space-8));
+  }
+
+  .modal__footer {
+    flex-direction: column-reverse;
+  }
+
+  .modal__footer .btn {
+    width: 100%;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   PAGE LAYOUT
+   --------------------------------------------------------------------- */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+}
+
+.page-header h1 {
+  margin: 0;
+}
+
+.page-header__description {
+  margin: 0;
+  font-size: var(--font-size-body);
+  color: var(--color-text-secondary);
+}
+
+/* Toolbar under the page title: filters, search, primary action.
+   align-items: flex-end so every control sits on one baseline underneath
+   its own visible label. */
+.page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.page-actions .search-field {
+  flex: 1 1 220px;
+}
+
+/* The primary action sits last and keeps its own space. */
+.page-actions__primary {
+  margin-left: auto;
+}
+
+.section {
+  margin-bottom: var(--space-section-gap);
+}
+
+.section__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.section__header h2 {
+  margin: 0;
+  font-size: var(--font-size-h2);
+}
+
+.section__header .field {
+  margin-left: auto;
+  min-width: var(--bar-width-max);
+}
+
+.section__footer {
+  margin: var(--space-4) 0 0;
+  font-size: var(--font-size-body);
+}
+
+@media (max-width: 767px) {
+  .page-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-actions__primary {
+    margin-left: 0;
+  }
+
+  .page-actions .btn {
+    width: 100%;
+    height: var(--control-height-lg);
+  }
+
+  .section__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .section__header .field {
+    margin-left: 0;
+  }
+}
+/* Two-column content on desktop, single column on mobile. */
+.split-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+
+@media (max-width: 1199px) {
+  .split-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   MOTION — one enter transition per view, one per dialog. No bouncing, no
+   per-card entrances, no background motion. Everything is neutralised by the
+   global prefers-reduced-motion rule in base.css.
+   --------------------------------------------------------------------- */
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes loading-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.page {
+  animation: page-in var(--duration-base) var(--ease-standard) both;
+}
+
+/* Loading placeholders. A quiet opacity pulse, nothing that moves. */
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body);
+  animation: loading-pulse 1.4s var(--ease-standard) infinite;
+}
+
+.loading__bar {
+  height: var(--space-1);
+  border-radius: var(--radius-pill);
+  background: var(--color-border);
+}

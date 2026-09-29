@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { Button } from "./Button";
+import { Field } from "./Field";
 import { validateUser } from "../utils/users";
 import { useUsers } from "../hooks/useUsers";
 import { USER_STATUS_OPTIONS } from "../constants/statuses";
@@ -39,46 +41,65 @@ function EditUserForm({ user, onSave }) {
   }
 
   return (
-    <form
-      className="edit-user-form"
-      onSubmit={handleSaveUser}
-      noValidate
-    >
-      <input
-        type="text"
-        required
-        value={editedName}
-        onChange={handleChange(setEditedName, "name")}
-      />
-      {errors.name && <p>{errors.name}</p>}
+    <form className="form" onSubmit={handleSaveUser} noValidate>
+      <Field label="Name" error={errors.name}>
+        {(controlProps) => (
+          <input
+            type="text"
+            className="field-control"
+            value={editedName}
+            onChange={handleChange(setEditedName, "name")}
+            {...controlProps}
+          />
+        )}
+      </Field>
 
-      <input
-        type="email"
-        required
-        value={editedEmail}
-        onChange={handleChange(setEditedEmail, "email")}
-      />
-      {errors.email && <p>{errors.email}</p>}
+      <Field label="Email" error={errors.email}>
+        {(controlProps) => (
+          <input
+            type="email"
+            className="field-control"
+            value={editedEmail}
+            onChange={handleChange(setEditedEmail, "email")}
+            {...controlProps}
+          />
+        )}
+      </Field>
 
-      <input
-        type="text"
-        required
-        value={editedRole}
-        onChange={handleChange(setEditedRole, "role")}
-      />
-      {errors.role && <p>{errors.role}</p>}
+      <Field label="Role" error={errors.role}>
+        {(controlProps) => (
+          <input
+            type="text"
+            className="field-control"
+            value={editedRole}
+            onChange={handleChange(setEditedRole, "role")}
+            {...controlProps}
+          />
+        )}
+      </Field>
 
-      <select
-        value={editedStatus}
-        onChange={(event) => setEditedStatus(event.target.value)}
-      >
-        {USER_STATUS_OPTIONS.map((status) => (
-          <option key={status} value={status}>
-            {status}
-          </option>
-        ))}
-      </select>
-      <button type="submit">Save Changes</button>
+      <Field label="Status" error={errors.status}>
+        {(controlProps) => (
+          <select
+            className="field-control"
+            value={editedStatus}
+            onChange={(event) => setEditedStatus(event.target.value)}
+            {...controlProps}
+          >
+            {USER_STATUS_OPTIONS.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
+          </select>
+        )}
+      </Field>
+
+      <div className="form-actions">
+        <Button type="submit" variant="primary">
+          Save Changes
+        </Button>
+      </div>
     </form>
   );
 }
