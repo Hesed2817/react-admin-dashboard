@@ -219,7 +219,11 @@ function Users() {
         />
       )}
 
-      {selectedUser && <SelectedUser user={selectedUser} />}
+      {selectedUser && (
+        <Modal title="User details" onClose={() => setSelectedUserId(null)}>
+          <SelectedUser user={selectedUser} />
+        </Modal>
+      )}
     </div>
   );
 }

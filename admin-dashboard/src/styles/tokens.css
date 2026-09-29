@@ -6,70 +6,117 @@
    library, and none is installed. Introducing one later would be a new
    decision, not a continuation of this file.
 
+   ONE documented exception: @fortawesome/fontawesome-free is a webfont/CSS
+   asset package, not a component library. It is used for the sidebar
+   navigation icons only. It ships no React components and nothing in the app
+   imports one. See PROJECT_NOTES.md, "Redesign: purple/white theme".
+
    Every visual value in the app resolves to a custom property declared below.
    ========================================================================== */
 
 /* ==========================================================================
    DESIGN TOKENS — the single source of truth for the visual system.
    LOCKED system. Every value below is intentional; do not freestyle these.
-   Aesthetic: premium, sharp, modern, high-contrast, restrained, professional.
-   Not rounded, not colourful, not gradient- or shadow-heavy, not decorative.
+
+   Aesthetic: light, airy, generous. Near-white surfaces, ONE purple accent
+   used sparingly, soft rounding, restrained shadows on cards and the hero
+   only. The interface must read as predominantly white/neutral — if purple
+   is the first thing you notice, the accent has been overused.
    ========================================================================== */
 
 :root {
   /* ---------------------------------------------------------------------
-     COLOUR — monochrome scale + ONE electric blue accent.
-     Semantic success/warning/error are restrained and derived, not decorative.
-     All text pairings below meet WCAG AA (>= 4.5:1) on their stated surface.
+     COLOUR
+
+     Accent provenance: #5438ff is SAMPLED from the reference dashboard's
+     solid accent fills (primary buttons / active states), not invented.
+     The reference's own light-mode values were #5438ff, #5339ff and
+     #5236fc across four separate accent tiles; #5438ff was the modal value.
+
+     Everything else is derived from it. Semantic success/warning/error are
+     deliberately hue-separated from the purple: green, amber and red sit
+     nowhere near 250deg, and the four record states are additionally
+     separated by label text, never by colour alone.
      --------------------------------------------------------------------- */
 
-  /* Monochrome surface + text */
-  --color-bg: #ffffff;
+  /* Surfaces. The page is a very light gray-lavender; cards sit on it white. */
+  --color-bg: #f4f2fd;
   --color-surface: #ffffff;
-  --color-surface-muted: #f7f8fa;
-  --color-surface-sunken: #f1f3f6;
+  --color-surface-muted: #f8f6ff;
+  --color-surface-sunken: #eae6fb;
 
-  --color-border: #e3e6ea;
-  --color-border-strong: #cdd3da;
+  /* Borders are lavender-tinted so they sit in the same family as the page. */
+  --color-border: #e6e1f5;
+  --color-border-strong: #cfc7e8;
   /* Boundaries of interactive controls need >= 3:1 (WCAG 1.4.11), which
      --color-border-strong does not reach. Use this for input/button edges.
      Decorative dividers can use --color-border-strong. */
-  --color-border-control: #828b98;
+  --color-border-control: #8b83a8;
 
-  --color-text-primary: #0b0f14;    /* 19.4:1 on --color-bg */
-  --color-text-secondary: #4a5361;  /*  7.8:1 on --color-bg */
-  --color-text-muted: #636c78;      /*  5.3:1 on --color-bg */
+  --color-text-primary: #171233;    /* 17.9:1 on --color-surface */
+  --color-text-secondary: #4b4468;  /*  9.0:1 on --color-surface */
+  --color-text-muted: #645c85;      /*  6.2:1 on --color-surface */
   --color-text-inverse: #ffffff;
 
-  /* The single accent */
-  --color-accent: #0a5cff;          /*  5.3:1 on --color-bg */
-  --color-accent-hover: #0847cc;
-  --color-accent-active: #063aa8;
-  --color-accent-subtle: #eef3ff;   /*  4.7:1 with --color-accent on it */
-  --color-accent-border: #b9ccff;
+  /* The single accent. 6.20:1 on white, so it is legal as text AND as a
+     button fill behind white text. It is not a text colour by default. */
+  --color-accent: #5438ff;
+  --color-accent-hover: #4526ea;
+  --color-accent-active: #3717cc;
+  --color-accent-subtle: #efecff;   /* 5.35:1 with --color-accent on it */
+  --color-accent-border: #c9bdff;
 
-  /* Semantic — restrained, used for state only */
-  --color-success: #0e7c4a;         /*  5.3:1 on --color-bg */
-  --color-success-subtle: #e6f5ec;
-  --color-warning: #8a5a00;         /*  5.9:1 on --color-bg */
-  --color-warning-subtle: #fdf3e2;
-  --color-error: #b3261e;           /*  6.5:1 on --color-bg */
-  --color-error-subtle: #fcedec;
-  --color-error-hover: #8f1e18;
+  /* Semantic — restrained, used for state only. None of these is the accent,
+     and none of them is the sole indicator of anything. */
+  --color-success: #0b7a4b;
+  --color-success-subtle: #e4f5ec;
+  --color-warning: #8a5300;
+  --color-warning-subtle: #fdf2e0;
+  --color-error: #b32318;
+  --color-error-subtle: #fdecea;
+  --color-error-hover: #8e1c13;
 
   /* Scrim behind the dialog and the mobile drawer. Kept as a token because it
      is the one translucent value in the system. */
-  --color-backdrop: rgba(11, 15, 20, 0.4);
+  --color-backdrop: rgba(23, 18, 51, 0.45);
+
+  /* ---------------------------------------------------------------------
+     GRADIENT — exactly one element in the app uses this: the hero/welcome
+     banner. It is not a button gradient, not a card gradient, and not a
+     background for a whole page. Do not reuse it "for consistency".
+
+     SAMPLED from the reference hero, which runs #5337fe -> #968df9. That
+     reference ramp is compressed here: its light end only reaches 2.5:1
+     against white text, which is far below AA. Every stop below is >= 4.88:1
+     against white, so hero copy is legible wherever it lands on the ramp.
+     --------------------------------------------------------------------- */
+  --gradient-hero: linear-gradient(
+    104deg,
+    #3a1aee 0%,
+    #5438ff 42%,
+    #6d55f8 100%
+  );
 
   /* ---------------------------------------------------------------------
      TYPOGRAPHY
-     Poppins is NOT global. It is scoped to headings and metrics only.
-     Inter carries everything else.
+     The heading face is NOT applied globally. It is scoped to headings,
+     metrics and the hero title; body copy is always --font-body.
+
+     Bricolage Grotesque — heading/display. Only 600 and 700 are requested,
+                      because those are the only two weights any display-face
+                      rule actually applies (h1..h6 are --font-weight-semibold
+                      with h1 at bold; .metric and .hero__title are bold).
+                      Requesting a third weight would ship a font file nothing
+                      can select. OFL 1.1.
+     Roboto         — body/UI. SUBSTITUTION, see PROJECT_NOTES.md: the owner
+                      asked for "Google Sans", which is proprietary and not
+                      distributable on the web. Roboto is Google's own open
+                      font and the same neo-grotesque lineage, so it is the
+                      closest licensed stand-in. Pending owner confirmation.
      --------------------------------------------------------------------- */
-  --font-heading: "Poppins", "Inter", system-ui, -apple-system, "Segoe UI",
-    sans-serif;
-  --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto,
-    sans-serif;
+  --font-heading: "Bricolage Grotesque", "Roboto", system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+  --font-body: "Roboto", system-ui, -apple-system, "Segoe UI", sans-serif;
 
   --font-size-h1: 32px;
   --font-size-h2: 24px;
@@ -96,22 +143,27 @@
   --letter-spacing-label: 0.04em;
 
   /* ---------------------------------------------------------------------
-     RADIUS — sharp by design. Only pills are fully round.
-     --------------------------------------------------------------------- */    /* badges, small elements */
-  --radius-control: 8px;  /* inputs, buttons */
-  --radius-card: 12px;    /* cards */
-  --radius-dialog: 16px;  /* dialogs */
-  --radius-pill: 999px;
+     RADIUS — generous. The reference rounds cards hard and uses fully
+     rounded pills; both are adopted. Form controls stay rectangular enough
+     to keep input edges and table cells aligned.
+     --------------------------------------------------------------------- */
+  --radius-control: 12px;  /* inputs, buttons */
+  --radius-card: 20px;     /* cards, tables, panels */
+  --radius-dialog: 20px;   /* dialogs */
+  --radius-pill: 999px;    /* badges, avatars, pills */
 
   /* ---------------------------------------------------------------------
      BORDERS & ELEVATION
-     Borders establish structure. Shadows establish elevation — and only
-     where something genuinely floats above the page.
+     Borders establish structure and remain the default. Shadows are for real
+     elevation and are deliberately confined to cards and the hero — never to
+     inputs, rows, nav items, or every element at once.
      --------------------------------------------------------------------- */
   --border-width: 1px;
 
-  --shadow-none: none;                                    /* cards: no shadow */    /* dropdowns */
-  --shadow-dialog: 0 16px 48px rgba(11, 15, 20, 0.16);    /* dialogs */
+  --shadow-card: 0 1px 2px rgba(23, 18, 51, 0.04),
+    0 6px 20px rgba(23, 18, 51, 0.06);
+  --shadow-hero: 0 12px 32px rgba(84, 56, 255, 0.18);
+  --shadow-dialog: 0 24px 60px rgba(23, 18, 51, 0.18);
 
   /* ---------------------------------------------------------------------
      SPACING — 4px grid. Favour 8 / 12 / 16 / 24 / 32.
@@ -134,6 +186,7 @@
   --sidebar-width: 240px;
   --sidebar-width-reduced: 200px;
   --header-height: 64px;
+  --header-search-width: 280px;
   --content-padding: var(--space-8);
 
   --control-height: 40px;
@@ -163,6 +216,7 @@
   --table-cell-padding-x: var(--space-4);
   --icon-size: 16px;
   --icon-size-sm: 14px;
+  --icon-size-nav: 18px;  /* sidebar navigation glyphs */
   --icon-stroke-width: 1.5;
   --modal-width: 500px;
   --modal-width-max-viewport: 84vw;
@@ -185,26 +239,51 @@
   --bar-width-min: 80px;
   --bar-width-max: 160px;
 
+  /* Placeholder media (illustration / avatar slots with no real asset yet).
+     Geometry only — the colours come from the accent and surface tokens. */
+  --media-placeholder-min-height: 96px;
+  --media-placeholder-avatar-size: 40px;
+  --media-placeholder-inline-width: 120px;
+
   /* ---------------------------------------------------------------------
      STATUS — the four record states.
 
-     Colour is never the only signal: every badge renders its status as text,
-     and each of the four has a distinct hue, so they stay distinguishable in
-     greyscale and for colour-blind readers.
+     Colour is never the only signal: every badge renders its status as a
+     text label beside a filled dot, so these values only have to make the
+     states *distinguishable*, not independently readable.
+
+     How the four are kept apart, and what is actually verified:
+
+       1. Each status colour is >= 4.5:1 on its own tint.
+       2. Among the three chromatic states the hue margin is wide:
+          green ~155deg, blue ~227deg, amber ~36deg -> pairwise gaps of
+          59deg / 119deg / 177deg.
+       3. Inactive is a deliberate NEUTRAL (chroma 0.35), separated by
+          chroma rather than hue. Desaturating a purple keeps its hue, so
+          a hue-only rule would wrongly ban a grey. Chroma is what keeps
+          it apart from the accent (0.78), so the two cannot be confused.
+       4. No pair is both hue-similar and lightness-similar. Blue/amber sit
+          0.0068 apart in luminance but 177deg apart in hue; blue/neutral
+          are 38deg apart in hue but 0.056 apart in luminance.
+
+     Why not spread them in luminance instead: an AA text colour on a light
+     tint only occupies about L 0.04-0.16, so four states cannot be spread
+     far apart in lightness. The reverted Phase 6-7 blue palette had a
+     minimum pairwise luminance gap of 0.0006 and separated the states by
+     hue alone while also failing contrast; these do both.
 
        Active      success green  — in service
-       Discharged  electric blue  — left care, still a valid record
+       Discharged  blue           — left care, still a valid record
        Pending     warning amber  — needs review
-       Inactive    neutral grey   — deliberately NOT red; an inactive staff
-                                  account is not an error condition
+       Inactive    neutral slate  — deliberately NOT red; an inactive staff
+                                   account is not an error condition
      --------------------------------------------------------------------- */
   --color-status-active: var(--color-success);
   --color-status-active-bg: var(--color-success-subtle);
-  --color-status-discharged: var(--color-accent);
-  --color-status-discharged-bg: var(--color-accent-subtle);
+  --color-status-discharged: #0f5fc4;
+  --color-status-discharged-bg: #e6f0fd;
   --color-status-pending: var(--color-warning);
   --color-status-pending-bg: var(--color-warning-subtle);
   --color-status-inactive: var(--color-text-secondary);
   --color-status-inactive-bg: var(--color-surface-sunken);
 }
-

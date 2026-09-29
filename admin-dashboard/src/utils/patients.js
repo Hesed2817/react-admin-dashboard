@@ -1,5 +1,6 @@
 import { isValidEmail, isValidPhone } from "./validation";
 import { ALL_STATUSES } from "../constants/statuses";
+import { toValidTimestamp } from "./activity";
 
 const DATE_OF_BIRTH_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
 const MAX_PATIENT_AGE = 120;
@@ -118,4 +119,41 @@ function filterPatients(
   });
 }
 
-export { calculateAge, isValidDateOfBirth, validatePatient, filterPatients, MAX_PATIENT_AGE };
+// Newest first, by the stored createdAt. A record whose createdAt is missing or
+// unparseable sorts last rather than being treated as the newest thing in the
+// app, and the input array is never mutated. `toValidTimestamp` is reused from
+// utils/activity so there is only one "is this a usable date" test in the repo.
+function sortPatientsByCreatedAtDesc(patients) {
+  return [...patients]
+    .map((patient, index) => ({ patient, index }))
+    .sort((first, second) => {
+      const firstDate = toValidTimestamp(first.patient.createdAt);
+      const secondDate = toValidTimestamp(second.patient.createdAt);
+
+      if (firstDate && secondDate) {
+        const difference = secondDate.getTime() - firstDate.getTime();
+
+        return difference !== 0 ? difference : first.index - second.index;
+      }
+
+      if (firstDate) {
+        return -1;
+      }
+
+      if (secondDate) {
+        return 1;
+      }
+
+      return first.index - second.index;
+    })
+    .map((entry) => entry.patient);
+}
+
+export {
+  calculateAge,
+  isValidDateOfBirth,
+  validatePatient,
+  filterPatients,
+  sortPatientsByCreatedAtDesc,
+  MAX_PATIENT_AGE,
+};

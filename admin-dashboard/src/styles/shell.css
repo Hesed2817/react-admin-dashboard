@@ -1,8 +1,12 @@
 /* ==========================================================================
    APP SHELL — layout, navigation and responsiveness.
    Sidebar 240px, header 64px, content padding 32px at desktop.
-   Borders establish structure. The active nav item is marked by colour AND
-   by weight AND by a rule, so the state is never colour-only.
+
+   The chrome (header + sidebar) is --color-surface, i.e. white. The canvas
+   behind it is --color-bg, the very light gray-lavender, so cards on the
+   canvas read as white without needing a heavy border to separate them.
+   The active nav item is marked by colour AND by weight AND by a rule, so
+   the state is never colour-only.
    ========================================================================== */
 
 .admin-layout {
@@ -26,12 +30,12 @@
   gap: var(--space-3);
 
   padding: 0 var(--space-6);
-  background: var(--color-bg);
+  background: var(--color-surface);
   border-bottom: var(--border-width) solid var(--color-border);
 }
 
 /* The header title is deliberately small: the page owns the H1. */
-.header h1 {
+.header__title {
   margin: 0;
   font-family: var(--font-body);
   font-size: var(--font-size-body);
@@ -39,6 +43,69 @@
   letter-spacing: 0;
   color: var(--color-text-secondary);
   line-height: var(--line-height-base);
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------
+   HEADER SEARCH — the reference's rounded, subtle search box with the
+   glyph inside. It submits a real form (see Header.jsx), so it navigates
+   rather than sitting there looking interactive.
+   --------------------------------------------------------------------- */
+
+.header-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  flex: 0 1 var(--header-search-width);
+  min-width: 0;
+  margin-left: auto;
+}
+
+.header-search__icon {
+  position: absolute;
+  left: var(--space-3);
+  display: inline-flex;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.header-search__input {
+  width: 100%;
+  height: var(--control-height-sm);
+  padding: 0 var(--space-3) 0 calc(var(--space-3) * 2 + var(--icon-size) + var(--space-1));
+
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+
+  background: var(--color-surface-muted);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-control);
+}
+
+.header-search__input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.header-search__input:hover {
+  border-color: var(--color-border-control);
+}
+
+.header-search__input:focus {
+  background: var(--color-surface);
+  border-color: var(--color-accent);
+  outline: var(--focus-ring-width) solid var(--color-accent);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Today's date. Real, static, and the last thing in the bar. */
+.header-date {
+  flex: 0 0 auto;
+  margin: 0;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
 }
 
 /* Menu button: hidden on desktop, shown below 768px. */
@@ -74,10 +141,44 @@
   grid-column: 1;
   grid-row: 2;
 
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+
   padding: var(--space-6) var(--space-4);
-  background: var(--color-bg);
+  background: var(--color-surface);
   border-right: var(--border-width) solid var(--color-border);
   overflow-y: auto;
+}
+
+/* The nav groups take the space that is left over; the profile card is pushed
+   to the bottom of the sidebar by the column's own flow, not by a spacer. */
+.nav-groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  flex: 1 1 auto;
+}
+
+/* One group: a label above its list. Stacking the list here is what keeps the
+   gap between the last item of a group and the next group's label, so the
+   spacing does not depend on the label's own margin. */
+.nav-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-group__label {
+  margin: 0 0 var(--space-2);
+  padding: 0 var(--space-3);
+
+  font-family: var(--font-body);
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-label);
+  text-transform: uppercase;
+
+  color: var(--color-text-muted);
 }
 
 .sidebar ul {
@@ -91,7 +192,9 @@
 }
 
 .nav-link {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
   padding: var(--space-2) var(--space-3);
   border-left: 2px solid transparent;
   border-radius: var(--radius-control);
@@ -103,6 +206,21 @@
 
   color: var(--color-text-secondary);
   text-decoration: none;
+}
+
+/* Font Awesome glyph for each nav item. Inherits the link's colour so the
+   active/inactive distinction carries through to the icon, and is sized from
+   --icon-size-nav rather than Font Awesome's own scale. */
+.nav-link .nav-link__icon {
+  width: var(--icon-size-nav);
+  height: var(--icon-size-nav);
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: currentColor;
+  font-size: var(--icon-size-nav);
 }
 
 .nav-link:hover {
@@ -123,6 +241,60 @@
 .nav-link:focus-visible {
   outline: var(--focus-ring-width) solid var(--color-accent);
   outline-offset: var(--focus-ring-offset-inset);
+}
+
+/* ---------------------------------------------------------------------
+   PROFILE CARD — pinned to the bottom of the sidebar.
+
+   It shows the profile the Settings page actually stores, so it is a
+   NavLink to that page rather than a decorative tile with a dead click
+   target. There is no rating, credential or "pro plan" line here, because
+   this app has no concept of any of those.
+   --------------------------------------------------------------------- */
+
+.sidebar-profile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+
+  flex: 0 0 auto;
+  padding: var(--space-3);
+
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+
+  color: inherit;
+  text-decoration: none;
+}
+
+.sidebar-profile:hover {
+  background: var(--color-surface-muted);
+  border-color: var(--color-border-strong);
+  text-decoration: none;
+}
+
+.sidebar-profile__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sidebar-profile__name {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-profile__role {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Scrim behind the mobile drawer. Hidden on desktop. */
@@ -181,11 +353,21 @@
     padding: 0 var(--space-4);
   }
 
-  .header h1 {
+  .header__title {
     font-size: var(--font-size-caption);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  /* On a phone the bar is menu + title + search. The date is the first thing
+     to go, because it is the only part with no function to perform. */
+  .header-date {
+    display: none;
+  }
+
+  .header-search {
+    flex: 1 1 auto;
   }
 
   .header-menu-button {
@@ -204,7 +386,7 @@
     max-width: var(--modal-width-max-viewport);
 
     padding: var(--space-6) var(--space-4);
-    background: var(--color-bg);
+    background: var(--color-surface);
     border-right: var(--border-width) solid var(--color-border);
 
     transform: translateX(-100%);

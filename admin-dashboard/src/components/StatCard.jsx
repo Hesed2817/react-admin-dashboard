@@ -1,5 +1,6 @@
-// Compact metric card. The number is the only Poppins in the component; the
-// label and description stay in Inter so display type stays scarce.
+// Compact metric card. The number is the only display-face text in the
+// component; the label and description stay in the body font so display type
+// stays scarce.
 function StatCard({ title, value, description }) {
   return (
     <div className="stat-card">

@@ -2,6 +2,10 @@ import { Avatar } from "./Avatar";
 import { StatusBadge } from "./StatusBadge";
 import { calculateAge } from "../utils/patients";
 
+// The body of the "view" dialog. This used to be an inline panel below the
+// table; it is now only ever rendered inside the shared <Modal>, so it draws no
+// card and no shadow of its own — the dialog supplies both. The record name is
+// an h3 because the dialog's own title is the h2 directly above it.
 function SelectedPatient({
   patient: {
     name,
@@ -17,10 +21,10 @@ function SelectedPatient({
   const age = calculateAge(dateOfBirth);
 
   return (
-    <section className="detail-panel" aria-label="Selected patient">
+    <div className="detail-panel">
       <div className="detail-panel__header">
         <Avatar name={name} />
-        <h2>{name}</h2>
+        <h3>{name}</h3>
       </div>
 
       <dl className="detail-list">
@@ -59,7 +63,7 @@ function SelectedPatient({
           <dd>{createdAt ? createdAt.slice(0, 10) : "—"}</dd>
         </div>
       </dl>
-    </section>
+    </div>
   );
 }
 

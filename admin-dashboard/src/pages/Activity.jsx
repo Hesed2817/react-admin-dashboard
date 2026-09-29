@@ -84,7 +84,7 @@ function Activity() {
                 {visibleItems.map((activity) => (
                   <tr key={activity.id}>
                     <td data-label="Type">
-                      <span className="status-badge status-inactive">
+                      <span className="status-badge status-badge--inactive">
                         {describeActivityType(activity.type)}
                       </span>
                     </td>

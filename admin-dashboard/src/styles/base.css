@@ -35,7 +35,8 @@ body {
 
 /* ---------------------------------------------------------------------
    TYPOGRAPHY
-   Poppins is scoped to headings and metrics. It is never the global font.
+   The heading face is scoped to headings and metrics. It is never the
+   global font; everything else is --font-body.
    --------------------------------------------------------------------- */
 
 h1,
@@ -98,7 +99,7 @@ label {
   color: var(--color-text-secondary);
 }
 
-/* The big number. Poppins, large, bold — used for metrics. */
+/* The big number. Display face, large, bold — used for metrics. */
 .metric {
   font-family: var(--font-heading);
   font-size: var(--font-size-metric);
@@ -115,7 +116,7 @@ label {
   }
 }
 
-/* Headings used for empty states. Poppins, same as other headings. */
+/* Headings used for empty states. Same face as other headings. */
 .empty-state-title {
   font-family: var(--font-heading);
   font-size: var(--font-size-h3);
@@ -124,7 +125,7 @@ label {
 }
 
 /* ---------------------------------------------------------------------
-   FOCUS — electric blue ring, 2px, offset. No glow.
+   FOCUS — purple ring, 2px, offset. No glow.
    :focus-visible only, so pointer users do not see rings.
    --------------------------------------------------------------------- */
 
@@ -153,7 +154,7 @@ label {
 }
 
 /* ---------------------------------------------------------------------
-   SCROLLBARS — restrained, matches the monochrome scale.
+   SCROLLBARS — restrained, matched to the border scale.
    --------------------------------------------------------------------- */
 
 * {

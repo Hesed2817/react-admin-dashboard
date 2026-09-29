@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Field } from "../components/Field";
+import { FilterPills } from "../components/FilterPills";
 import { PageActions } from "../components/PageActions";
 import { PageHeader } from "../components/PageHeader";
 import { StatCard } from "../components/StatCard";
@@ -7,6 +8,7 @@ import { TrendTable } from "../components/TrendTable";
 import { BreakdownTable } from "../components/BreakdownTable";
 import { EmptyState } from "../components/EmptyState";
 import { useReportData } from "../hooks/useReportData";
+import { ALL_CATEGORIES, REPORT_PERIODS } from "../utils/reports";
 import {
   STATUS_ACTIVE,
   STATUS_INACTIVE,
@@ -14,11 +16,10 @@ import {
   STATUS_PENDING,
 } from "../constants/statuses";
 
-const ALL_CATEGORIES = "All";
 const FAVORITE_CATEGORY = "Favorites";
 
 function Reports() {
-  const [period, setPeriod] = useState("all");
+  const [period, setPeriod] = useState(REPORT_PERIODS[0].value);
   const [userCategory, setUserCategory] = useState(ALL_CATEGORIES);
   const [patientCategory, setPatientCategory] = useState(ALL_CATEGORIES);
 
@@ -39,20 +40,12 @@ function Reports() {
         description="Derived statistics from users and patients"
       >
         <PageActions label="Report filters">
-          <Field label="Period">
-            {(controlProps) => (
-              <select
-                className="field-control"
-                value={period}
-                onChange={(event) => setPeriod(event.target.value)}
-                {...controlProps}
-              >
-                <option value="all">All time</option>
-                <option value="6m">Last 6 months</option>
-                <option value="12m">Last 12 months</option>
-              </select>
-            )}
-          </Field>
+          <FilterPills
+            label="Reporting period"
+            options={REPORT_PERIODS}
+            value={period}
+            onChange={setPeriod}
+          />
         </PageActions>
       </PageHeader>
 

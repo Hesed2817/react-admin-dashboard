@@ -531,7 +531,7 @@ The original `--color-border-control: #8a93a0` reached only **2.92:1** against `
 
 The component-library option (PrimeReact) is **reversed and closed**. It will not be installed, configured, imported, aliased or referenced anywhere in the application. The app keeps its hand-built, token-driven component set. The reason the earlier mapping table in `tokens.css` was deleted rather than kept "for later" is that a bridge to a library that will never be adopted is dead configuration, which is exactly the kind of drift the token system exists to prevent.
 
-No part of the UI depends on a third-party component package. `package.json` runtime dependencies remain exactly: `react`, `react-dom`, `react-router`.
+No part of the UI depends on a third-party **component** package. `package.json` runtime dependencies are `react`, `react-dom`, `react-router`, plus one documented exception: `@fortawesome/fontawesome-free`, an icon **font**, added at the owner's direction during the Cure.Med visual redesign to replace hand-drawn and text glyphs in the navigation. No Font Awesome React component package, no `fontawesome-svg-core`, and no animation library is installed. See "Cure.Med visual redesign" below.
 
 ---
 
@@ -604,3 +604,187 @@ No part of the UI depends on a third-party component package. `package.json` run
 5. **The mobile drawer scrim is a focusable `<button aria-label="Close navigation">`.** This gives it a keyboard path but means a full-surface invisible control exists in the tab order while the drawer is open; a non-focusable backdrop plus an explicit close control would be leaner.
 6. **Fonts still come from Google Fonts** (`display=swap` + `preconnect`), so rendering depends on a third-party network call and the app is not fully self-contained offline.
 7. All Phase 1/2/3/3b/4/5/6 flags remain open as previously recorded, except those explicitly marked resolved above.
+
+---
+
+## Cure.Med visual redesign — Part A, foundation (2026-09-29)
+
+**Outcome: the Phase 6–7 monochrome/electric-blue visual system is reversed and replaced with a light, near-white lavender-and-purple foundation sampled from the owner's reference screenshots. This is a reversal of two committed phases, not an incremental restyle. Part A is styling and assets only: no page was restructured and no component logic, provider, hook or data flow was touched. 323 assertions pass, `npm run lint` and `npm run build` are clean. Part B has NOT been started and is waiting on approval.**
+
+### The reversal, and why
+
+Phase 6 locked a monochrome system and Phase 7 built every page on it, including a token comment that declared a single "cool electric blue" accent the right choice for clinical software. That decision is now reversed, deliberately, for the same reason the PrimeReact decision was reversed: a committed choice that is no longer the right choice is worse than never having made it, because every component now encodes it.
+
+- **Replaced:** greyscale surfaces, a single saturated electric blue (`#0a5cff` family), `--color-bg: #f1f2f4`-style neutral greys, flat borderless cards, and Poppins/Inter.
+- **With:** near-white surfaces on a faint lavender page tint, one purple accent, hairline borders, restrained elevation on cards only, and Space Grotesk/Roboto.
+- **Why:** the owner supplied two reference screenshots as the intended visual direction. Their flat accent tiles, soft purple-blue banner gradient and low-chroma light surfaces are the target. The screenshots informed the *values*; they did not dictate layout, and nothing was copied structurally.
+
+The token names were **kept**, not renamed. `color/bg`, `color/surface`, `color/text-*`, `color/accent`, `radius/*`, `shadow/*` and so on still mean what they meant, so the reversal is a value change, not a refactor. `--shadow-none` was removed because the new elevation policy made it meaningless and it had no consumer.
+
+### Font choices (the substitution the owner needs to confirm)
+
+| Role | Choice | Reasoning |
+| --- | --- | --- |
+| Headings / display | **Space Grotesk** 500–700 | Freely licensed, geometric-grotesque character matching the reference UI's headings, and visually distinct from the body face. |
+| Body / UI | **Roboto** 400–700 | **A deliberate substitute for "Google Sans", which is proprietary and not on Google Fonts.** Roboto is freely licensed, has a similar humanist-neutral tone and near-identical metrics behaviour, and is the closest safe stand-in. |
+
+`font-display: swap` and the two `preconnect` hints were kept; the single `<link>` in `index.html` was edited in place, not duplicated. The display face is scoped to `h1`–`h6`, `.metric` and `.empty-state-title` only — it is never applied to a body-text element, and the body stack does not lead with it. **This substitution is a judgement call, not a match; please confirm Roboto is acceptable or name a preferred freely licensed alternative.**
+
+### The one dependency exception
+
+`@fortawesome/fontawesome-free@7.3.1` — the owner's explicit exception to "no new dependencies". Two CSS files are imported, not the React bindings and not `all.min.css`: `fontawesome.min.css` (the class→codepoint map) and `solid.min.css` (the webfont binding). Six navigation icons only. An audit confirmed all six are in the **free solid set** and none require a Pro licence. No brand or regular webfont is emitted, and the existing hand-built inline-SVG `Icon` set was left alone, because it already resolves every name and 1.5px-strokes correctly.
+
+**Known cost, stated plainly:** the codepoint map ships 1,422 rules covering all 2,001 free icon selectors (including aliases), and the solid webfont is 119 kB, so the icon system costs ~17 kB gzipped CSS plus that webfont for six glyphs. This was accepted because hand-trimming it means copying vendor CSS into the repo, which is exactly the drift the token system exists to prevent. If that trade is wrong, the lean alternative is inlining the six SVGs from the package's own `svgs/solid/` and dropping the webfont entirely (~1–2 kB, no font request) — worth revisiting, flagged below.
+
+### Files added
+
+| File | Purpose |
+| --- | --- |
+| `src/components/MediaPlaceholder.jsx` | Accessible empty-media surface: `role="img"` + `aria-label`, an illustration silhouette or avatar circle, `block` / `avatar` / `inline` variants, optional visible caption. An unknown `kind` renders nothing rather than an empty box. It is deliberately *not* an `<img>`, so it can never show a broken-image glyph. |
+
+### Files changed
+
+- `src/styles/tokens.css` — the reversal itself. Sampled palette, Space Grotesk/Roboto, `--gradient-hero` (used by exactly one hero element), card/hero/dialog shadows, 12/20/999px radii, and placeholder-media geometry. `--shadow-none` deleted.
+- `src/index.css` — added the two Font Awesome imports ahead of the design-system files; still imports-only and still ordered.
+- `src/styles/base.css` — type stack plus corrected comments; display face kept off body text.
+- `src/styles/shell.css` — header and sidebar now sit on `--color-surface` over the lavender canvas, so the shell reads as white chrome instead of a grey band; added `.nav-link__icon` for the Font Awesome glyphs.
+- `src/styles/components.css` — card/hero elevation and radius, hero block, placeholder-media styles, and removal of the old blue-tinted accent rules.
+- `src/components/Sidebar.jsx` — the six nav items now use Font Awesome solid icons. `aria-hidden` on every glyph, because the visible text label carries the meaning; adding the icons did not add any accessible name.
+- `src/components/StatCard.jsx` — comment only.
+- `index.html`, `package.json`, `package-lock.json` — font link; the one dependency.
+
+### Verified (323 assertions, 0 failures; lint and build clean)
+
+- **Every `var(--token)` resolves to a real declaration and no token is unused**, re-parsed from source. A typo'd token renders as *nothing*, which a visual grep cannot catch. There is no colour literal and no raw geometry literal outside `tokens.css`.
+- **Contrast is computed from the resolved token values**, not asserted: 33 text/UI pairs, all passing. Body text 16.20:1, link-on-white 6.20:1, white-on-accent 6.20:1, control border on white 3.55:1, every hero gradient stop ≥ 4.88:1 under white text, and each status badge on its own tint 4.76 / 5.28 / 5.71 / 7.40:1.
+- **All six icon codepoints were confirmed to survive the build** into `dist/assets`, and the sidebar was server-rendered to check that all six classes, the `aria-hidden` flags, the nav landmark label and the active state are present.
+- `MediaPlaceholder` was server-rendered in all three variants and an unknown `kind`, checking `role`, `aria-label`, the visible caption, and that no variant emits an `<img>` or a broken-image glyph.
+- No old electric-blue hex, and no `Poppins`/`Inter`, remains anywhere in `src/` or `index.html`, nor in the built CSS.
+
+### Defects found and fixed during this verification
+
+1. **A false claim in `tokens.css` was caught and corrected.** The status comment asserted "a minimum luminance gap of 0.02 … is asserted, not assumed" and ">= 25deg from the accent hue". Neither was true: the real minimum pairwise luminance gap is **0.0068** (Discharged vs Pending), and the neutral Inactive sits **3.2deg** from the accent hue. Rewritten to state the rule that is actually verified — no pair is both hue-similar *and* lightness-similar — and to explain why a hue-only rule would wrongly ban a deliberate grey. This is the second time a comment in this project asserted a property the harness had never checked; the harness now derives every number in that comment.
+2. **The Phase 7 claim that status hues "are additionally checked to differ in luminance" is superseded.** It was never enforced at that strength. The chromatic statuses genuinely are ≥ 59deg apart in hue; the neutral is separated by chroma instead. Recorded here rather than left as a standing claim.
+3. **A stale `grep` for the icon classes initially reported zero matches** and looked like a broken import. The classes were present: the minifier rewrites `--fa:"\f625"` to the literal character `U+F625`. The check was corrected to match both forms before any conclusion was drawn.
+4. **The verification harness itself had four bugs** (a `--color-color-…` token-name typo, a missing `fa-` prefix in two icon regexes, a dependency count of 3 instead of 4, and a colour pattern so broad it flagged the new success green `#0b7a4b` as "old electric blue"). All were harness faults, fixed and re-run; none indicated an app defect.
+
+### Flags
+
+1. **Nothing here is a rendered-pixel claim.** As in Phase 7, there was no headless browser. Verification is computed contrast, computed cascade, real server-rendered DOM, and source/CSS analysis. It is not a screenshot diff and must not be described as one.
+2. **The reference screenshots were analysed programmatically, not viewed.** I sampled exact pixel values from the two PNGs (accent `#5438ff`, light page `#f1f1fe`, banner gradient stops) because I cannot see images. The values are real measurements, but my reading of the *overall composition* is inferred. Please eyeball the result against the screenshots.
+3. **Roboto is a substitute for proprietary Google Sans and needs your confirmation** (see the font table above).
+4. **The Font Awesome webfont is 119 kB for six icons.** Accepted, with the inline-SVG alternative documented above if you want the weight back.
+5. **`MediaPlaceholder` is currently unimported.** It is a foundation component for Part B, so it deliberately has no consumer yet — but under the dead-code discipline applied in Phase 7 it is an exception, and it should be wired in during Part B rather than left orphaned. **Resolved in Part B** — it is now used by the hero, the highlight card, the sidebar profile card and every recent-patients row.
+6. **The hero gradient and placeholder styles have no consumer yet**, for the same reason: they exist so Part B is restricted to composing existing primitives. **Resolved in Part B** — `--gradient-hero` now has exactly one consumer, `.hero` on the Dashboard, and the harness asserts it still has exactly one.
+7. **The app still has no dark theme.** The reference included a dark screenshot; only the light direction is built, so the dark palette remains a possible Part B/B+ decision. **Still open** — see Part B.
+8. All Phase 1/2/3/3b/4/5/6/7 flags remain open as previously recorded, except where superseded above.
+
+---
+
+## Cure.Med visual redesign — Part B, composition (2026-09-29)
+
+**Outcome: the Part A foundation is now composed into the app. The failing heading font is replaced, both record "view" actions open the shared modal, the shell was rebuilt around grouped navigation and a real search, and the dashboard was restructured around data this app actually has. 810 assertions pass, 44 contrast pairs pass, `npm run lint` and `npm run build` are clean. No provider, hook, service or storage behaviour was changed, and no dependency was added.**
+
+### The font that was failing to load
+
+Part A shipped Space Grotesk 500–700 as the display face. It does not exist as a Google Font, so the request 404'd on the family and every heading silently fell back to the body face. Verified first, then replaced.
+
+- **Was:** `family=Space+Grotesk:wght@500;600;700&family=Roboto:wght@400;500;600;700&display=swap` — the combined request returned CSS with **no Space Grotesk `@font-face` block at all**.
+- **Now:** `family=Bricolage+Grotesque:wght@600;700&family=Roboto:wght@400;500;600;700&display=swap`. The single `<link>` was edited in place; both `preconnect` hints are untouched.
+- **Why Bricolage Grotesque:** it is a real variable Google Font, it is a geometric grotesque with the same character as the reference's headings, and it is visually distinct from Roboto so the display/body split is actually visible. The reference screenshot's own typeface could not be identified with confidence, so this is a close match, not a copy.
+- **Weights were cut to 600 and 700** because those are the only two the app applies. The harness derives the applied weights from the CSS (currently `bold` and `semibold` only) and fails if any display-face rule sets a weight outside 600/700, so a third weight cannot be introduced without also requesting it.
+- `--font-heading` in `tokens.css` now leads with `"Bricolage Grotesque"`; `--font-body` is Roboto only. The display face is still scoped to headings, metrics and titles and is never applied to body text.
+
+### View-as-modal
+
+`SelectedUser` and `SelectedPatient` were inline panels that appeared *below* the table, so opening a record pushed the page around and the selection had no dialog semantics. Both now render inside the existing shared `Modal` (the same component the delete confirmation already used), which means the focus trap, Escape handling, focus restoration, backdrop click, `aria-modal` and the dialog's own `h2` title all apply to the view action for free. Nothing was duplicated to achieve this.
+
+- The record name is an `h3` directly under the dialog's `h2`.
+- The old `.detail-panel` card chrome (background, border, radius, shadow) was deleted. The dialog is already the card; a second card inside it was the thing that made the old version read as a separate surface.
+- The number of view actions in the app is asserted to be exactly two, each one only setting a selection id, each one owned by a page that renders the shared `Modal` and imports it.
+
+### The shell
+
+- **Sidebar:** two labelled groups — `Workspace` (Dashboard, Users, Patients, Reports, Activity) and `Preferences` (Settings) — plus a profile card at the bottom. The card reads the real name and role from `Settings` and links to `/settings`, the page that edits exactly those fields. An unset profile renders as "Profile not set" / "Set your details in Settings" rather than a fabricated person, and no rating or credential is invented.
+- **Header:** a real search form, today's date, and the existing mobile navigation control. The search is `role="search"` with a bound `sr-only` label, submits on Enter, and navigates to `/patients?q=…`. `Patients` reads the term from the URL and writes it back with `replace: true`, so the header search and the page's own box are one source of truth, a search survives a reload, and it does not stack one history entry per keystroke.
+- **No bell and no theme toggle.** This app has no notification inbox and no working theme, and a control that does nothing is worse than no control.
+
+### The dashboard, and what filled each slot
+
+Every value is computed from the existing stores. Nothing is stored twice and no figure is hardcoded.
+
+| Slot | Filled with | Why |
+| --- | --- | --- |
+| Welcome banner | `Hero` — greeting from the Settings profile name, a sentence of real counts, one white CTA to `/patients` | The banner is the app's only consumer of `--gradient-hero` and its only large display type. |
+| Hero media | `MediaPlaceholder` ("Dashboard illustration placeholder") | There is no illustration asset; a dashed named frame says "unfilled" instead of rendering a broken image. |
+| Single large number | `StatHighlight` — total patients, with the status split underneath | Patients are the primary record type and the only entity with a care lifecycle. |
+| "To-do" column | `QuickActions` — four links: Patients, Users, Reports, Activity | The reference dashboard has a task list. This app has no tasks, no assignments and no due dates, so a to-do list would be fiction dressed as data. These are the four things an operator actually does from this screen, and every one navigates. |
+| "Appointments" column | `RecentList` — five most recently created patients, each with a status badge | There are no appointments in this app. The nearest real thing is the newest records, which is what an operator wants next to a patient count. |
+| Chart area | Analytics card: period pills + two `TrendTable`s **with** bars | Reuses `useReportData` and `REPORT_PERIODS` — the same hook and options the Reports page reads — so the two screens cannot disagree about a total. |
+| Activity feed | Kept at the bottom, unchanged in meaning | It was already honest real data; moving it was not necessary. |
+
+`TrendTable` gained an opt-in `showBar` prop that reuses the existing `toBarPercent` helper and the existing `breakdown-bar` styles. The bar is `aria-hidden`, the Count column is always present, and `showBar` defaults to `false`, so the Reports page is byte-for-byte unchanged by this work.
+
+`Reports`' period `<select>` became the same `FilterPills` group, driven by `REPORT_PERIODS`, which is derived from `PERIOD_MONTHS` so the options and the filter implementation cannot drift. `Reports` also stopped re-declaring `ALL_CATEGORIES` locally and now imports it from `utils/reports`, where it was already defined.
+
+### Files added
+
+| File | Purpose |
+| --- | --- |
+| `src/components/Hero.jsx` | `Hero` (the page `h1` + message + media slot) and `HeroLink` (a real `Link` styled with the existing button language). |
+| `src/components/StatHighlight.jsx` | The one large metric card. Deliberately not a bigger `StatCard`. |
+| `src/components/QuickActions.jsx` | Real navigation shortcuts, one per destination, icon decorative. |
+| `src/components/RecentList.jsx` | Short people list with a media slot per row, a real empty state and an optional footer. |
+| `src/components/FilterPills.jsx` | Accessible mutually-exclusive option group; `aria-pressed` carries the selection, so the active pill is never colour-only. |
+
+### Files changed
+
+- `index.html` — the font link (one line, edited in place).
+- `src/styles/tokens.css` — `--font-heading`; comments corrected from Space Grotesk to Bricolage Grotesque.
+- `src/styles/shell.css` — grouped nav, profile card, header search, header date, `.header__title`; header and sidebar now sit on `--color-surface`.
+- `src/styles/components.css` — hero, placeholder media, dashboard layout, highlight, quick actions, recent list, analytics, pills; card/dialog elevation; `.detail-panel` reduced to content only.
+- `src/components/Header.jsx`, `Sidebar.jsx`, `SelectedUser.jsx`, `SelectedPatient.jsx`, `TrendTable.jsx`, `Icon.jsx` (four new glyphs: `users`, `patient`, `chart`, `history`).
+- `src/pages/Dashboard.jsx` (restructured), `Patients.jsx` (modal + URL search), `Users.jsx` (modal), `Reports.jsx` (pills, shared constant), `Activity.jsx` (one dead class fixed).
+- `src/utils/patients.js` — added `sortPatientsByCreatedAtDesc`; `src/utils/reports.js` — exports `REPORT_PERIODS`, `ALL_CATEGORIES`, `PERIOD_MONTHS`.
+
+### Judgement calls, stated explicitly
+
+1. **The reference's task list and appointments column were not faked.** Both slots were filled with real, reachable data (quick actions, recent patients). This is a deliberate departure from the screenshot's composition.
+2. **Header search targets Patients only.** Patients is the entity this app looks people up on. It does not search Users and does not search across both.
+3. **The hero CTA is a white button, not a second purple one.** The banner is already the accent; stacking a purple fill on it is the "purple everywhere" failure. Its label is `--color-accent` on `--color-surface` (6.20:1), and both hover and active states are checked the same way.
+4. **Analytics reuses `useReportData` rather than deriving new numbers on the dashboard.** No chart library was added; the bar column reuses the existing breakdown-bar system.
+5. **The header's app name was demoted from `h1` to a `<p class="header__title">`.** This is a change to a Part A decision (see defects below) and is the one item in this phase that touches something Part A deliberately chose.
+6. **Settings was grouped as its own `Preferences` section** rather than kept as a sixth peer, because it is the only item that configures the app rather than being part of the work.
+7. **Font Awesome was left as-is.** Six solid glyphs still cost a 119 kB webfont and a large codepoint map. Part A already recorded the lean alternative; it is still not done.
+
+### Verified (810 assertions, 44 contrast pairs, lint and build clean)
+
+- **The font really exists and really is served.** The live request returns HTTP 200 with 42 `@font-face` rules; Bricolage Grotesque is present at 600 and 700, each declaring `font-display: swap` and a Latin subset covering `U+0000-00FF`; both Latin files were downloaded and their first four bytes are `wOF2`, so they are real fonts and not error pages; Roboto is still served; the response contains no Space Grotesk. `src/`, `index.html` and `dist/` contain no Space Grotesk reference. The harness fails if any display-face rule uses a weight outside 600/700, or if the display face is applied to a body-text element.
+- **Token integrity and drift:** every `var(--token)` resolves, no token is dead, every alias resolves, no colour literal exists outside `tokens.css`, and the new selectors carry no raw geometry literal.
+- **Accent restraint is enumerated, not eyeballed.** Accent *fills* exist on exactly three selectors (`.btn-primary`, `.pill--active`, `.breakdown-bar-fill`), `--gradient-hero` has exactly one consumer, accent *tints* on three, and `box-shadow` is confined to card/hero/dialog/page chrome.
+- **Contrast:** 44 computed pairs, all passing — every text pair ≥ 4.5:1, every non-text pair ≥ 3:1, every hero gradient stop ≥ 4.88:1 under white text, each status badge on its own tint 4.76–7.40:1, and the status set is checked for hue/lightness separation as a set rather than pairwise-by-luminance (see defect 5).
+- **Rendered output.** The real components were server-rendered through Vite SSR and the DOM inspected: the sidebar (six glyphs, all `aria-hidden`, two group labels, active state, real profile name and role, and the unset-profile case), the header (search landmark, bound label, `type="search"`, real `aria-expanded`, machine-readable `<time>`, no bell, no theme toggle), the pills, hero, highlight, quick actions, recent list, both dialogs (real `role="dialog"`, `aria-modal`, `h3` record name, every field still present, em dash for an empty field), and `TrendTable` with and without bars (43% and 100% widths, no NaN). No `NaN`, `undefined`, `[object Object]` or `Invalid Date` appears in any rendered output.
+- **Cascade at three widths** is evaluated by parsing the media queries, not by grep: 1440 (sidebar column, search fixed width), 1000 (reduced sidebar), 390 (sidebar becomes a fixed off-canvas drawer, menu button appears, the date is dropped, the search flexes).
+- **Dead code:** no orphaned source file, no `console.log`/`debugger`/`TODO`/`FIXME`, no `<img>` anywhere in `src/` (comments excluded, since the prose mentions `<img>` deliberately), no local `@font-face` shadowing the CDN, and the six Font Awesome codepoints all survive the build.
+- **Build:** `dist/index.html` 0.78 kB, CSS 103.57 kB (23.54 kB gzip), JS 326.73 kB (98.61 kB gzip), webfont 119.48 kB. `dist/index.html` keeps both preconnects and the corrected family.
+
+### Defects found and fixed in this phase
+
+1. **The header and the page were both rendering an `h1`.** `Header` shipped an `<h1>Admin Dashboard</h1>` whose own comment claimed "the page owns the H1", and every page's `PageHeader` renders another `h1`. Adding the hero would have put three on the Dashboard. The header title is now a `<p class="header__title">`, and the harness asserts that a page has exactly one `h1` and that the hero is the Dashboard's only one. This supersedes the Part A note that the header title is "a deliberately small, de-emphasisised h1".
+2. **A dead CSS class was in use on the Activity page.** `className="status-badge status-inactive"` referenced a class that Phase 7 renamed, so those badges had lost their background. Now `status-badge--inactive`.
+3. **`.nav-group` had markup but no rule.** The new sidebar group wrapper was unstyled; a rule was added rather than deleting the harness's expectation of it.
+4. **Two comments in the two dialog bodies claimed they render no heading** while both render an `h3`. Corrected to describe what the code does.
+5. **The harnesses themselves had eight defects** (all found by running them, none of which indicated an app problem): an unterminated regex that made the whole file fail to parse; a `Set` misuse in the token-usage collector; the Google Fonts link being parsed with `URLSearchParams`, which decoded `+` to a space, dropped the second family and then built a URL `fetch` refused — which is also why the live font check reported a network failure while the network was fine; a CTA contrast check that compared the CTA's label against the gradient *behind* the button rather than against the button's own surface; pseudo-class selectors counted as separate elements when auditing accent fills; `<img>` matched inside a comment that discusses `<img>`; icons and orphan-file checks that matched class names and import paths the code does not use. All corrected and re-run. On the first green run the harness also correctly rejected one of my own assertions: I had expected undated records in a specific order, and the implementation's stable ordering was right.
+6. **The contrast harness was still asserting a rule that Part A had already retired.** It required every status pair to differ by ΔL ≥ 0.05 in luminance and reported seven failures on the current palette. Those are the numbers Part A recorded as the *real* values (minimum pairwise gap 0.0068, Discharged vs Pending) and formally superseded with the rule "no pair may be close in both hue and lightness", which is what the code comments and `tokens.css` now say. The stale threshold was replaced with that rule, not with a re-tuned number. **No status colour was changed in this phase.**
+
+### What remains, and what needs your decision
+
+1. **No browser pass.** There is still no headless browser on this machine (`firefox` is a snap stub that refuses to run), so nothing here is a rendered-pixel claim. What is verified is the real server-rendered DOM, the computed cascade, computed contrast and source analysis. A human should look at the Dashboard, the two dialogs and a phone-width layout before this is called done.
+2. **Should the header search cover Users too?** It currently searches Patients only. Extending it to both entities, or to Users, is a product decision, not a styling one.
+3. **The header `h1` demotion changes a Part A decision.** If you would rather the app name stayed a heading and the page title were not, say so and it will be reverted — but then the page `h1` has to go instead, and one of the two has to.
+4. **Notifications and theme remain unimplemented.** Settings still stores a `light`/`dark` preference and two notification flags that do nothing. The header deliberately shows no bell or toggle. Building them, or deleting the dead Settings fields, is a separate piece of work.
+5. **Font Awesome is still 119 kB for six glyphs.** Inlining the six SVGs from the package's own `svgs/solid/` directory would drop the webfont entirely; not done here.
+6. **No dark theme.** The reference included a dark screenshot; only the light direction is built.
+7. **A column/area chart is still not built.** The analytics card shows the same data as Reports with a proportional bar. If a real chart is wanted, that is a new dependency or a hand-built SVG and should be requested explicitly.
+8. **Two destructive actions remain non-undoable**, and the mobile drawer scrim is still a focusable full-surface button — both carried forward from earlier phases.
+9. All Phase 1/2/3/3b/4/5/6/7 and Part A flags remain open as previously recorded, except those explicitly resolved above.

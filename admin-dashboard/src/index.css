@@ -1,19 +1,27 @@
 /* ==========================================================================
    index.css — imports only.
 
-   tokens.css      the locked design system (single source of truth)
-   base.css        element defaults: type scale, focus ring, reduced motion
-   shell.css       app shell, navigation, responsive drawer
-   components.css  shared components: buttons, fields, cards, tables, badges,
-                   modals, empty states, motion
+   fontawesome    @fortawesome/fontawesome-free. Two files only: the class ->
+                  codepoint map, plus the solid webfont binding. No React
+                  components from the package are used anywhere. The one
+                  documented exception to the no-new-dependencies rule,
+                  requested by the owner (see PROJECT_NOTES.md).
+   tokens.css     the locked design system (single source of truth)
+   base.css       element defaults: type scale, focus ring, reduced motion
+   shell.css      app shell, navigation, responsive drawer
+   components.css shared components: buttons, fields, cards, tables, badges,
+                  modals, empty states, hero, placeholder media, motion
 
    There is no component CSS in this file. Every rule that styles a component
    lives in components.css and resolves to a custom property from tokens.css,
    so there is exactly one place to change the visual system.
 
-   Import order matters: tokens must resolve before everything that uses them.
+   Import order matters: the icon font must be declared before the design
+   tokens, which must resolve before everything that uses them.
    ========================================================================== */
 
+@import "@fortawesome/fontawesome-free/css/fontawesome.min.css";
+@import "@fortawesome/fontawesome-free/css/solid.min.css";
 @import "./styles/tokens.css";
 @import "./styles/base.css";
 @import "./styles/shell.css";

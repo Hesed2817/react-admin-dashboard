@@ -73,7 +73,7 @@
   background: var(--color-surface);
 }
 
-/* Primary — the single electric blue action on a view. */
+/* Primary — the single accent action on a view. */
 .btn-primary {
   background: var(--color-accent);
   border-color: var(--color-accent);
@@ -177,7 +177,7 @@
 }
 
 /* ---------------------------------------------------------------------
-   FIELDS — 40px controls, 8px radius, 1px border, Inter.
+   FIELDS — 40px controls, 12px radius, 1px border, body font.
    Every control has a real <label>; placeholder is never the only label.
    --------------------------------------------------------------------- */
 
@@ -237,8 +237,8 @@ select.field-control {
   border-color: var(--color-text-muted);
 }
 
-/* Electric blue focus border. The ring comes from the global :focus-visible
-   rule in base.css, so there is no glow. */
+/* Accent focus border. The ring comes from the global :focus-visible rule in
+   base.css, so there is no glow. */
 .field-control:focus {
   border-color: var(--color-accent);
   outline: var(--focus-ring-width) solid var(--color-accent);
@@ -340,8 +340,9 @@ select.field-control {
 }
 
 /* ---------------------------------------------------------------------
-   CARDS — 1px border, 12px radius, no shadow. Used only where grouping
-   genuinely helps; long lists and tables are not boxed.
+   CARDS — 1px border, 20px radius, one soft shadow. The reference gives
+   cards a soft shadow, so this system does too — but it is confined to
+   cards. Rows, inputs, nav items and inline text get none.
    --------------------------------------------------------------------- */
 
 .card {
@@ -349,11 +350,411 @@ select.field-control {
   background: var(--color-surface);
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius-card);
-  box-shadow: var(--shadow-none);
+  box-shadow: var(--shadow-card);
 }
 
 /* ---------------------------------------------------------------------
-   STAT CARDS — compact. Poppins is used for the metric only.
+   HERO — the single element allowed to use --gradient-hero.
+   White text is safe across the whole ramp: every stop is >= 4.88:1
+   against #ffffff. The hero is the one place display type gets to be big.
+   --------------------------------------------------------------------- */
+
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+
+  padding: var(--space-6) var(--space-8);
+  margin-bottom: var(--space-6);
+  border-radius: var(--radius-card);
+
+  background: var(--gradient-hero);
+  box-shadow: var(--shadow-hero);
+  color: var(--color-text-inverse);
+}
+
+.hero__content {
+  min-width: 0;
+}
+
+.hero__title {
+  margin: 0 0 var(--space-1);
+  font-family: var(--font-heading);
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-heading);
+  color: var(--color-text-inverse);
+}
+
+.hero__message {
+  margin: 0;
+  max-width: var(--measure-text);
+  font-size: var(--font-size-body);
+  color: var(--color-text-inverse);
+  opacity: 0.92;
+}
+
+/* The hero's one call to action. It is a WHITE button on the gradient, not a
+   purple one — the banner is already the accent, and a second purple fill
+   stacked on it is exactly the "purple everywhere" failure. */
+.btn-hero {
+  margin-top: var(--space-4);
+  background: var(--color-surface);
+  color: var(--color-accent);
+  border-color: var(--color-surface);
+}
+
+.btn-hero:hover {
+  background: var(--color-surface-muted);
+  border-color: var(--color-surface-muted);
+  color: var(--color-accent-hover);
+}
+
+.btn-hero:active {
+  background: var(--color-surface-sunken);
+  border-color: var(--color-surface-sunken);
+  color: var(--color-accent-active);
+}
+
+@media (max-width: 767px) {
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: var(--space-5);
+  }
+
+  .hero__media {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   PLACEHOLDER MEDIA — for the slots the redesign wants filled with an
+   illustration, photo or avatar that this app does not have yet.
+
+   It is deliberately a dashed "empty frame" rather than a broken image:
+   a dashed border with a muted silhouette reads as "put something here"
+   at a glance, in greyscale, and in a screenshot. Every instance carries a
+   real accessible name, so assistive tech announces what is missing rather
+   than a filename or nothing at all.
+
+   Colours are existing tokens: accent-tinted surface and border, muted
+   glyph. No new colour concept was introduced for this.
+   --------------------------------------------------------------------- */
+
+.media-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+
+  min-height: var(--media-placeholder-min-height);
+  padding: var(--space-4);
+
+  background: var(--color-accent-subtle);
+  border: var(--border-width) dashed var(--color-accent-border);
+  border-radius: var(--radius-card);
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.media-placeholder__glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: var(--icon-size-nav);
+  height: var(--icon-size-nav);
+  color: var(--color-accent);
+}
+
+.media-placeholder__label {
+  margin: 0;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+
+/* Circular variant, for avatar slots in a list. */
+.media-placeholder--avatar {
+  flex: 0 0 auto;
+  width: var(--media-placeholder-avatar-size);
+  min-height: var(--media-placeholder-avatar-size);
+  height: var(--media-placeholder-avatar-size);
+  padding: 0;
+  border-radius: var(--radius-pill);
+}
+
+/* Inline variant, for a media slot that sits inside a row or a stat tile. */
+.media-placeholder--inline {
+  flex-direction: row;
+  gap: var(--space-2);
+  min-height: 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control);
+}
+
+/* ---------------------------------------------------------------------
+   DASHBOARD LAYOUT — the three arrangements the dashboard needs. All three
+   collapse to one column; none of them introduces a second accent.
+   --------------------------------------------------------------------- */
+
+/* The single large number, beside the quick-action list. */
+.dashboard-top {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+/* Analytics card on the left, the people list on the right. */
+.dashboard-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+  margin-bottom: var(--space-6);
+}
+
+@media (max-width: 1199px) {
+  .dashboard-top,
+  .dashboard-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stat-highlight {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.stat-highlight__text {
+  min-width: 0;
+}
+
+.stat-highlight__value {
+  margin: var(--space-1) 0 0;
+}
+
+.stat-highlight__description {
+  margin: var(--space-2) 0 0;
+  font-size: var(--font-size-body);
+  color: var(--color-text-secondary);
+}
+
+.stat-highlight__media {
+  flex: 0 0 auto;
+  width: var(--media-placeholder-inline-width);
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .stat-highlight {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .stat-highlight__media {
+    width: 100%;
+  }
+}
+
+/* ---- Quick actions -------------------------------------------------- */
+
+.quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.quick-actions__title,
+.recent-list__title {
+  margin: 0;
+  font-size: var(--font-size-h3);
+}
+
+.quick-actions__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.quick-action {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control);
+
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.quick-action:hover {
+  background: var(--color-surface-muted);
+  text-decoration: none;
+}
+
+.quick-action__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  color: var(--color-accent);
+}
+
+.quick-action__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.quick-action__label {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.quick-action__description {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+
+/* ---- Recent people list --------------------------------------------- */
+
+.recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.recent-list__items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.recent-list__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.recent-list__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.recent-list__name {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent-list__meta {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+
+/* ---- Analytics card ------------------------------------------------- */
+
+.analytics {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.analytics__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.analytics__header h2 {
+  margin: 0;
+  font-size: var(--font-size-h2);
+}
+
+.analytics h3 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-h3);
+}
+
+/* ---------------------------------------------------------------------
+   FILTER PILLS — the reference's rounded option chips.
+
+   The selected pill is marked three ways: a filled accent background, a
+   heavier weight, and aria-pressed. Colour is never the only signal.
+   --------------------------------------------------------------------- */
+
+.pill-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-1);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-muted);
+}
+
+.pill {
+  height: var(--control-height-sm);
+  padding: 0 var(--space-4);
+
+  font-family: var(--font-body);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  white-space: nowrap;
+
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
+}
+
+.pill:hover {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+.pill--active {
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
+  font-weight: var(--font-weight-semibold);
+}
+
+.pill--active:hover {
+  background: var(--color-accent-hover);
+  color: var(--color-text-inverse);
+}
+
+/* ---------------------------------------------------------------------
+   STAT CARDS — compact. The display face is used for the metric only.
    --------------------------------------------------------------------- */
 
 .stats-grid {
@@ -381,7 +782,7 @@ select.field-control {
   background: var(--color-surface);
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius-card);
-  box-shadow: var(--shadow-none);
+  box-shadow: var(--shadow-card);
 }
 
 .stat-card__label {
@@ -393,8 +794,8 @@ select.field-control {
   color: var(--color-text-secondary);
 }
 
-/* The metric. Poppins, large, bold — the one place display type is used
-   outside a heading. */
+/* The metric. Display face, large, bold — the one place display type is
+   used outside a heading. */
 .stat-card__value {
   margin: var(--space-1) 0 0;
   font-family: var(--font-heading);
@@ -471,6 +872,7 @@ select.field-control {
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius-card);
   background: var(--color-surface);
+  box-shadow: var(--shadow-card);
 }
 
 .data-table {
@@ -718,17 +1120,13 @@ th[aria-sort="descending"] .th-sort .icon {
 }
 
 /* ---------------------------------------------------------------------
-   DETAIL PANEL — shown when a record is selected.
-   --------------------------------------------------------------------- */
+   DETAIL PANEL — the body of the "view" dialog.
 
-.detail-panel {
-  margin-top: var(--space-8);
-  padding: var(--space-5);
-  background: var(--color-surface);
-  border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-none);
-}
+   It is deliberately chrome-free: the <Modal> around it is already the card
+   (20px radius, hairline border, deep shadow). Giving the content a second
+   card inside the dialog is what made the old inline version read as a
+   separate surface, so all that is left here is the record itself.
+   ------------------------------------------------------------------- */
 
 .detail-panel__header {
   display: flex;
@@ -737,7 +1135,7 @@ th[aria-sort="descending"] .th-sort .icon {
   margin-bottom: var(--space-4);
 }
 
-.detail-panel__header h2 {
+.detail-panel__header h3 {
   margin: 0;
   font-size: var(--font-size-h3);
 }
@@ -760,7 +1158,7 @@ th[aria-sort="descending"] .th-sort .icon {
   color: var(--color-text-primary);
   background: var(--color-surface-sunken);
   border: var(--border-width) solid var(--color-border);
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-pill);
 }
 
 .detail-list {
@@ -797,7 +1195,8 @@ th[aria-sort="descending"] .th-sort .icon {
 }
 
 /* ---------------------------------------------------------------------
-   EMPTY STATES — minimal monochrome line, optional subtle blue accent.
+   EMPTY STATES — a muted glyph, never an accent one. The title carries the
+   meaning; the icon is a subordinate status cue.
    --------------------------------------------------------------------- */
 
 .empty-state {
@@ -809,6 +1208,7 @@ th[aria-sort="descending"] .th-sort .icon {
   background: var(--color-surface);
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
 }
 
 .empty-state__icon {
@@ -856,7 +1256,7 @@ th[aria-sort="descending"] .th-sort .icon {
 }
 
 /* ---------------------------------------------------------------------
-   MODAL — 16px radius, 1px border, moderate shadow, calm backdrop.
+   MODAL — 20px radius, 1px border, deep shadow, calm backdrop.
    --------------------------------------------------------------------- */
 
 .modal-backdrop {

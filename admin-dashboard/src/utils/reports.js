@@ -44,6 +44,20 @@ const PERIOD_MONTHS = {
   "12m": 12,
 };
 
+// The only description of the period filter there is. REPORT_PERIODS is
+// derived from PERIOD_MONTHS rather than written out again, so a new window
+// cannot be added to one map and forgotten in the other.
+const PERIOD_LABELS = {
+  all: "All time",
+  "6m": "Last 6 months",
+  "12m": "Last 12 months",
+};
+
+const REPORT_PERIODS = Object.keys(PERIOD_MONTHS).map((value) => ({
+  value,
+  label: PERIOD_LABELS[value],
+}));
+
 function toValidDate(value) {
   if (!value) {
     return null;
@@ -281,4 +295,7 @@ export {
   toSharePercent,
   toBarPercent,
   AGE_GROUPS,
+  PERIOD_MONTHS,
+  REPORT_PERIODS,
+  ALL_CATEGORIES,
 };

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router";
 import { AddPatientForm } from "../components/AddPatientForm";
 import { Button } from "../components/Button";
 import { EditPatientForm } from "../components/EditPatientForm";
@@ -20,7 +21,11 @@ import { filterPatients } from "../utils/patients";
 function Patients() {
   const { patients, loading, error, addPatient, updatePatient, deletePatient } =
     usePatients();
-  const [searchTerm, setSearchTerm] = useState("");
+  // The header search hands its term over in the URL, so a search survives a
+  // reload and can be shared as a link. This page's own search box edits the
+  // same state, so the two never disagree.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchTerm = searchParams.get("q") || "";
   const [statusFilter, setStatusFilter] = useState(ALL_STATUSES);
   const [selectedPatientId, setSelectedPatientId] = useState(null);
   const [editingPatient, setEditingPatient] = useState(null);
@@ -35,6 +40,13 @@ function Patients() {
     searchTerm,
     statusFilter,
   });
+
+  // The term lives in the URL, not in state, so the header search and this
+  // page's search box are the same single source. `replace` keeps a search
+  // from filling the back button with one entry per keystroke.
+  function handleSearchChange(value) {
+    setSearchParams(value ? { q: value } : {}, { replace: true });
+  }
 
   function handleViewPatient(id) {
     setSelectedPatientId(id);
@@ -113,7 +125,7 @@ function Patients() {
                   className="field-control"
                   placeholder="Name, email or phone"
                   value={searchTerm}
-                  onChange={(event) => setSearchTerm(event.target.value)}
+                  onChange={(event) => handleSearchChange(event.target.value)}
                   {...controlProps}
                 />
               </>
@@ -196,7 +208,14 @@ function Patients() {
         />
       )}
 
-      {selectedPatient && <SelectedPatient patient={selectedPatient} />}
+      {selectedPatient && (
+        <Modal
+          title="Patient details"
+          onClose={() => setSelectedPatientId(null)}
+        >
+          <SelectedPatient patient={selectedPatient} />
+        </Modal>
+      )}
     </div>
   );
 }

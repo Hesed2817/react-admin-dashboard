@@ -35,6 +35,36 @@ const ICON_PATHS = {
       <path d="M2 9.5l2-6h8l2 6v3.5H2V9.5z" />
     </>
   ),
+  users: (
+    <>
+      <circle cx="6" cy="5" r="2.5" />
+      <path d="M1.5 13.5a4.5 4.5 0 0 1 9 0" />
+      <path d="M10.5 3a2.5 2.5 0 0 1 0 5" />
+      <path d="M12 13.5a4.5 4.5 0 0 0-1.4-3.2" />
+    </>
+  ),
+  patient: (
+    <>
+      <circle cx="6.5" cy="5" r="2.5" />
+      <path d="M2 13.5a4.5 4.5 0 0 1 9 0" />
+      <path d="M12.5 8.5v3M11 10h3" />
+    </>
+  ),
+  chart: (
+    <>
+      <path d="M2 13.5h11" />
+      <path d="M4 13.5V8" />
+      <path d="M7.5 13.5V3.5" />
+      <path d="M11 13.5v-4" />
+    </>
+  ),
+  history: (
+    <>
+      <path d="M2.5 8a5.5 5.5 0 1 0 1.7-4" />
+      <path d="M1.5 2v3.5H5" />
+      <path d="M8 5.2V8l2 1.4" />
+    </>
+  ),
 };
 
 // One set, 16px viewBox, 1.5px stroke, no fills except the filled star.
