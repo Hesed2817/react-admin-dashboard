@@ -1191,3 +1191,156 @@ block `#5438ff`, block-to-surface 5.79:1, glyph-on-block 6.20:1.
    the screenshots exist; the judgement that the rail now *looks* right is still
    the owner's.
 7. All Part A–C open items remain open except as noted above.
+
+---
+
+## Part E — the tables were already responsive; the actions were not (2026-10-01)
+
+### What I was asked to do, and what the browser said
+
+The request was to make the app responsive below the mobile breakpoint, scale
+type, and replace narrow table action buttons with a kebab menu. A real browser
+was driven at 390px across all six routes before anything was edited.
+
+**Most of the premise did not survive measurement.** The existing mobile layout
+already worked:
+
+| Thing the brief assumed was broken | Measured at 390px, before any edit |
+| --- | --- |
+| Content not full width | Usable width 358px (390 − 16 − 16). Hero 348px, stat cards 348px, tables 346px, cards 348px — all span the padded width. **Zero elements wider than the usable width. Zero horizontal overflow.** |
+| Multi-column grids not collapsing | Every `grid-template-columns` in play resolved to a single track. Already one column. |
+| Body type too large | Hero title already 24px, stat metric already 36px, table body 14px, labels 12px — all existing tokens, already stepped down. |
+| Tables losing data | `.data-table--stack` already stacks every `<td>` into a labelled `grid` row (`content: attr(data-label)`), hides `<thead>`, and renders 346px wide. Nothing is dropped or truncated. |
+
+So **items 1 and 2 of the brief were already satisfied** and I changed nothing to
+"fix" them. Writing new grid or typography overrides here would have been
+churn that risked regressing layout that already works.
+
+One part of the premise was exactly right, and it was the actions.
+
+### The actual defect
+
+Per row, in a 346px table, Users spent a labelled row on four buttons:
+
+```
+Actions  [View 68x34] [Favori.. 85x34]        291px of buttons
+         [Edit 62x34] [Delete 76x34]         in a 346px cell
+```
+
+- **291px of button width in a 346px cell — 84% of the table**, wrapped onto two
+  lines by `flex-wrap`.
+- **Four tab stops per row.** On a 10-row table that is 40 tab stops before the
+  reader reaches the next control, and the buttons are 34px
+  (`--control-height-sm`), under the 44px the design system already reserves for
+  touch in `--control-height-lg`.
+- The row carried no information — it was pure control chrome.
+
+### What changed
+
+1. **`src/components/RowActionsMenu.jsx` (new).** A reusable popover:
+   `role="menu"` + `role="menuitem"`, one tab stop, `aria-haspopup="menu"`,
+   `aria-expanded`, per-row `aria-label="Actions for <name>"`, and a menu
+   `aria-label`. Open focuses the first item; ArrowDown/ArrowUp wrap; Home/End
+   jump; Escape closes and returns focus; mousedown outside closes; Tab closes
+   without trapping and hands focus back so the browser advances to the next
+   row's trigger. It deliberately does **not** use `useFocusTrap` or
+   `useScrollLock` — trapping focus in one menu would strand a keyboard user in
+   a ten-row table.
+2. **One source of truth per row.** Both tables now build an `actions`
+   descriptor array once and render it twice — as `.table-actions` buttons when
+   wide, as menu items when compact. The mobile menu and the desktop buttons
+   therefore *cannot* drift: they are the same array calling the same handlers.
+   `ariaLabel` is kept separate from `label` so the desktop buttons' long
+   accessible names (`Add <name> to favorites`) are preserved byte-for-byte.
+3. **`src/components/Icon.jsx`**: added `more` (three filled dots, matching the
+   existing `starFilled` convention — a 1.5px stroked circle reads as a smudge
+   at 16px).
+4. **`src/styles/components.css`**: styles for the trigger, list and items. The
+   trigger is `--control-height-lg` (44px) to meet the touch size the system
+   already specifies for mobile. `Delete` carries `--color-error` in its
+   *resting* state, not only on hover, because a menu item spends most of its
+   life unhovered and would otherwise read as an ordinary action.
+5. **`src/styles/tokens.css`**: one new token, `--z-menu: 700`, placed below
+   `--z-drawer-scrim: 800` so a row menu can never paint over the drawer or a
+   dialog.
+
+### Decisions, and why
+
+**Conditional render, not CSS hiding.** `useIsCompactViewport()` already exists
+in `src/hooks/useMediaQuery.js` and already reads the same
+`(max-width: 767px)` query the CSS uses, so JS and CSS cannot drift. Only one
+set of controls is ever in the DOM, which means no duplicate handlers, no
+duplicate `aria-label`s, and no hidden tab stops to reason about. The cost is a
+re-render when the breakpoint is crossed — the pattern `AdminLayout` already uses
+for the drawer. CSS hiding would have put 40 hidden buttons per table into the
+a11y tree.
+
+**Columns: none dropped, none condensed.** The stacked layout already renders
+every column as its own labelled row, so the decision was already made and is
+better than anything I would have chosen: *all* columns stay essential because
+turning them into cards costs no horizontal space. Removing any would have been
+a silent data loss. The only column that changed is `Actions`, which now holds
+one control instead of four.
+
+**Tab target.** Kept 44px on mobile and unchanged at 34px on desktop. Raising it
+everywhere would have altered desktop, which was out of scope.
+
+### Verification (real browser, `/tmp/opencode/*.mjs`)
+
+`verify-menu` 58, `verify-regress` 50, `verify-edge` 14 — 122 assertions,
+**1 failure, and it is pre-existing** (see below). Plus `npm run lint` and
+`npm run build` clean, and `package.json` untouched (`git diff` empty: still
+react + react-dom + react-router + fontawesome).
+
+- 390px: 10 kebabs on Users, 8 on Patients, **zero** inline `.btn-row-action`
+  in the DOM, 44x44 each, one tab stop per row, sortable headers still reachable.
+- Menu: 4 items (3 on Patients), all `role="menuitem"`, focus on first item,
+  arrows wrap, Home/End work, Escape closes and restores focus, Tab advances to
+  the next trigger without trapping, mousedown outside closes, only one menu can
+  be open.
+- Handlers are the existing ones: View → existing `User details` /
+  `Patient details` modal; Delete → existing confirm modal (its own "Delete
+  user" confirm button); Favorite toggles the row with no dialog and the label
+  flips to "Favorited".
+- Desktop 1440: 40 inline buttons back, **zero** kebabs, aria-labels and
+  `aria-pressed` unchanged, back to 34px.
+- Boundaries: 767 → kebab, 768/1199/1200 → inline, and `.table-scroll` clips
+  correctly at every one.
+- Regression: expanded sidebar 216px, indicator 182x35, collapsed rail
+  `#f8f6ff`, active `#5438ff`, 34px rows, avatar 34x34, both header placeholders
+  still inert, dark theme still applies, drawer still 240px/16px.
+- Mutation-tested: dropping the 767px gate → 9 failures; 44px → 34px → 2
+  failures; removing Escape → 3 failures.
+- Screenshots: `shots/after-*.png` for all six routes at 390px and Users at
+  1440px, plus the open menu, the Delete modal, and the last-row and first-row
+  edge cases.
+
+### Honest gaps and open items
+
+1. **The three prompts to check the mobile layout found nothing to fix, because
+   there was nothing to fix.** I did not manufacture changes for them.
+2. **Pre-existing 768–836px horizontal overflow, not introduced by me and not
+   fixed.** At exactly 768px the document `scrollWidth` is 836px (68px of
+   overflow), tapering to 0 by 900px. No unclipped element exceeds the viewport,
+   and the constant 836 is the Users table's intrinsic width. I confirmed this
+   is pre-existing by stashing every file I touched and re-measuring: identical
+   836px. It lives at the 767/768 boundary, i.e. the *tablet* range, so fixing it
+   means touching the desktop/tablet layout and is out of scope here. **Flagged
+   for the owner.**
+3. **No MCP Playwright tool was callable**, so verification used real Chromium
+   over CDP instead. Real browser, real painted pixels, not the requested tool.
+4. **No human visual sign-off.** Screenshots exist and pixels were decoded and
+   measured, but whether the menu *looks* right is still the owner's call.
+5. **The previous phase's four harnesses were destroyed** when `/tmp` was
+   cleared. I rebuilt coverage of the load-bearing invariants
+   (`verify-regress`, 50 assertions) rather than the full 746, so the totals are
+   not comparable to Part D and no longer cover everything they did.
+6. **Mutation testing found one redundant line.** Removing the explicit
+   `restoreFocus` call does not fail the focus assertion, because Chrome
+   restores focus to the trigger by itself when the focused menu item unmounts.
+   The call is kept: it is load-bearing for the item-select path (where a modal
+   takes over) and for engines that do not restore focus. Noted so nobody later
+   "simplifies" it away on the basis of a green test.
+7. **A plain mouse click does not focus the trigger in headless Chrome.** The
+   keyboard path is unaffected (Enter/Space activate, Escape restores), but this
+   is a browser-level behaviour, not something the component controls.

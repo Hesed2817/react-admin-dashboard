@@ -331,6 +331,10 @@ select.field-control {
   display: flex;
   gap: var(--space-2);
   margin-top: var(--space-1);
+
+  /* Let a pair of side-by-side buttons stack rather than forcing the row
+     wider than a narrow phone. */
+  flex-wrap: wrap;
 }
 
 @media (max-width: 767px) {
@@ -425,7 +429,21 @@ select.field-control {
     padding: var(--space-5);
   }
 
-  .hero__media {
+  /* Stacked, the text and the media are no longer side by side, so the text
+     column no longer has a max measure to respect: it should take the full
+     width of the hero. Left unset it is shrink-to-fit (align-items:
+     flex-start above), so it collapses to the greeting's max-content width
+     and leaves the rest of the banner empty. Same fix as
+     .stat-highlight__media below. */
+  .hero__content {
+    width: 100%;
+  }
+
+  /* `display: none` here needs the compound selector to outrank
+     `.media-placeholder { display: flex }`, which is declared later in this
+     file at the same specificity and was silently winning — so the
+     placeholder was still painted on mobile. */
+  .hero .hero__media {
     display: none;
   }
 }
@@ -521,7 +539,13 @@ select.field-control {
 @media (max-width: 1199px) {
   .dashboard-top,
   .dashboard-columns {
-    grid-template-columns: 1fr;
+    /* minmax(0, 1fr), not 1fr: a bare `1fr` is minmax(auto, 1fr), and the
+       auto minimum resolves to the track's min-content. The analytics card
+       contains a data table whose min-content width exceeds a narrow phone,
+       so the single column refused to shrink and pushed the whole document
+       sideways (~52px of overflow at 320px). minmax(0, ...) lets the column
+       shrink and the existing .table-scroll scrollbar take the overflow. */
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -559,6 +583,12 @@ select.field-control {
   }
 
   .stat-highlight__media {
+    width: 100%;
+  }
+
+  /* Same shrink-to-fit fix as .hero__content: stacking drops the side-by-side
+     measure that made this column naturally narrow. */
+  .stat-highlight__text {
     width: 100%;
   }
 }
@@ -867,6 +897,7 @@ select.field-control {
    --------------------------------------------------------------------- */
 
 .table-scroll {
+  position: relative;
   width: 100%;
   overflow-x: auto;
   border: var(--border-width) solid var(--color-border);
@@ -931,6 +962,83 @@ select.field-control {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-1);
+}
+
+/* ---- Row action menu -------------------------------------------------
+   Rendered only on compact viewports (see useIsCompactViewport), so nothing
+   here can affect desktop. Additive: .table-actions still owns desktop. */
+.row-actions-menu {
+  position: relative;
+  display: inline-flex;
+}
+
+/* One 44px target. The row menu replaces four 34px buttons, so the single
+   control that replaces them has to meet the touch size the design system
+   already reserves for mobile: --control-height-lg. */
+.row-actions-menu__trigger {
+  width: var(--control-height-lg);
+  height: var(--control-height-lg);
+  padding: 0;
+  color: var(--color-text-secondary);
+}
+
+.row-actions-menu__trigger:hover {
+  color: var(--color-text-primary);
+  background: var(--color-surface-muted);
+  border-color: var(--color-border);
+}
+
+.row-actions-menu__list {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  right: 0;
+  /* Below the drawer (900) and the dialog (1000), so a row menu can never
+     paint over either. The table rows themselves are not positioned, so this
+     only has to beat the flow content beneath it. */
+  z-index: var(--z-menu);
+  min-width: 10rem;
+  margin: 0;
+  padding: var(--space-1);
+  list-style: none;
+  text-align: left;
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-control);
+  box-shadow: var(--shadow-card);
+}
+
+.row-actions-menu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: var(--control-height);
+  padding: 0 var(--space-3);
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+
+.row-actions-menu__item:hover,
+.row-actions-menu__item:focus-visible {
+  background: var(--color-surface-muted);
+}
+
+/* The desktop danger buttons are only tinted on hover. A menu item spends most
+   of its life not hovered, so the danger colour has to be in the resting
+   state or "Delete" reads as an ordinary action. */
+.row-actions-menu__item--danger {
+  color: var(--color-error);
+}
+
+.row-actions-menu__item--danger:hover,
+.row-actions-menu__item--danger:focus-visible {
+  color: var(--color-error);
+  background: var(--color-error-subtle);
 }
 
 /* Sortable header control. aria-sort lives on the <th>. */
@@ -1191,6 +1299,15 @@ th[aria-sort="descending"] .th-sort .icon {
   .detail-list {
     grid-template-columns: 1fr;
     gap: var(--space-3);
+  }
+
+  /* Same shrink-to-fit issue: column + align-items:flex-start causes children
+     to size to intrinsic width. Stretching lets children fill the card width
+     while still honoring max-width constraints (e.g. .empty-state__message).
+     Compound selector: the base .empty-state rule sits later in this file at
+     equal specificity and would otherwise win. */
+  .empty-state.empty-state {
+    align-items: stretch;
   }
 }
 
@@ -1471,7 +1588,10 @@ th[aria-sort="descending"] .th-sort .icon {
 
 @media (max-width: 1199px) {
   .split-layout {
-    grid-template-columns: 1fr;
+    /* minmax(0, 1fr), not 1fr — see the note on .dashboard-columns. A bare
+       `1fr` floors the track at min-content, so a wide table in either column
+       pushed the document sideways instead of scrolling inside .table-scroll. */
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 

@@ -641,8 +641,22 @@
 
 /* ---- Below 768px: drawer --------------------------------------------- */
 @media (max-width: 767px) {
-  .admin-layout {
-    grid-template-columns: 1fr;
+  /* The collapsed-rail preference persists across viewports, and
+     `.admin-layout.is-sidebar-collapsed` sets an explicit two-column grid
+     (--sidebar-width-collapsed 1fr) with no breakpoint guard. On a phone that
+     overrode the single-track drawer grid above, so the 76px rail track
+     survived into mobile and `.main-content` — which the drawer block below
+     pins to grid-column 1 — was auto-placed into it. The whole page then
+     rendered inside 76px: cards floored at their own min-content (~99px),
+     overflowing their 44px parent, with text wrapping one or two words per
+     line. Reassert the single track after the collapsed rule so mobile stays
+     single-column whichever sidebar preference is stored. */
+  .admin-layout,
+  .admin-layout.is-sidebar-collapsed {
+    /* minmax(0, 1fr), not 1fr: a bare `1fr` floors the track at its
+       min-content, and min-content of the content column (cards, tables)
+       exceeds a narrow phone, which pushed the document sideways. */
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: var(--header-height) 1fr;
   }
 

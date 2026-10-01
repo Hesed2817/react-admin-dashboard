@@ -28,6 +28,15 @@ const ICON_PATHS = {
   ),
   close: <path d="M4 4l8 8M12 4l-8 8" />,
   menu: <path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11" />,
+  // The horizontal kebab. Dots rather than strokes, like starFilled: a stroked
+  // circle at 1.5px renders as a ring at this size and reads as a smudge.
+  more: (
+    <>
+      <circle cx="3" cy="8" r="1.3" fill="currentColor" stroke="none" />
+      <circle cx="8" cy="8" r="1.3" fill="currentColor" stroke="none" />
+      <circle cx="13" cy="8" r="1.3" fill="currentColor" stroke="none" />
+    </>
+  ),
   sort: <path d="M5 6.5L8 3.5l3 3M5 9.5l3 3 3-3" />,
   inbox: (
     <>
