@@ -788,3 +788,406 @@ Every value is computed from the existing stores. Nothing is stored twice and no
 7. **A column/area chart is still not built.** The analytics card shows the same data as Reports with a proportional bar. If a real chart is wanted, that is a new dependency or a hand-built SVG and should be requested explicitly.
 8. **Two destructive actions remain non-undoable**, and the mobile drawer scrim is still a focusable full-surface button — both carried forward from earlier phases.
 9. All Phase 1/2/3/3b/4/5/6/7 and Part A flags remain open as previously recorded, except those explicitly resolved above.
+
+---
+
+## Part B — independent verification pass (2026-09-30)
+
+**Outcome: Part B was already fully implemented and committed (`49cf3b0`). This pass changed no application file — `git status` is clean — and rebuilt the verification from scratch, because the previous harnesses no longer exist. 250 assertions pass; `npm run lint` and `npm run build` are clean.**
+
+### The finding that matters most: there is no test suite
+
+`package.json` has four scripts: `dev`, `build`, `lint`, `preview`. There is **no `test` script, no test runner in `devDependencies`, and no `*.test.*` / `*.spec.*` file anywhere in the project.**
+
+Every earlier phase's "N assertions, 0 failures" came from Node harnesses written to `/tmp/opencode/` and run by hand. **Those files are gone.** So the instruction to "run the full existing test suite" cannot be satisfied as written — there is nothing to run. Claiming a suite passed would be false.
+
+What was done instead: three harnesses were written from scratch against the current source and run. They are also ephemeral (in `/tmp`, per this project's own convention), so **the project still has no regression suite** — see open item 1 below, which is the single most important thing in this section.
+
+| Harness | Assertions | Covers |
+| --- | --- | --- |
+| `verify-partb.mjs` | 125 | Token integrity, font, contrast, accent restraint, view-as-modal, prior-phase invariants, shell/dashboard requirements |
+| `render-partb.mjs` | 79 | The real DOM, server-rendered through Vite SSR, of the real components |
+| `cascade-data.mjs` | 46 | The evaluated media-query cascade at three widths, plus data-layer regression |
+| **Total** | **250** | |
+
+### The font fix is real, and confirmed against the live CDN
+
+The brief's first item was the heading font. Verified rather than trusted:
+
+- The single `<link>` is `family=Bricolage+Grotesque:wght@600;700&family=Roboto:wght@400;500;600;700&display=swap`, with both `preconnect` hints intact. `dist/index.html` carries the same string, so the fix reached the build.
+- A live request returns **HTTP 200** with `@font-face` blocks for `Bricolage Grotesque` at **600 and 700**, each with `font-display: swap` and a Latin subset covering `U+0000-00FF`. Roboto is still served at 400/500/600/700.
+- The two Latin `woff2` files were downloaded and their first four bytes are **`wOF2`** (`774f4632`) — they are real fonts, not error pages.
+- **No leftover reference to the font that was failing.** `Space Grotesk`, `Space+Grotesk`, `Poppins` and `Inter` appear in neither `src/` nor `index.html`, nor in `dist/`. (The strings `Spacebar` and `xmlSpace` in the JS bundle are React internals, and `userSpaceOnUse` is in `favicon.svg`; neither is a font.)
+- **Headings actually resolve to Bricolage Grotesque.** `--font-heading` is `"Bricolage Grotesque", "Roboto", system-ui, -apple-system, "Segoe UI", sans-serif`, so the computed `font-family` for any heading is `Bricolage Grotesque` with Roboto as the fallback. The `h1, h2, h3, h4, h5, h6` rule applies it, and `body` applies `--font-body` and does **not** contain the display face.
+- All seven display-face rules (`h1`–`h6`, `.metric`, `.stat-card__value`, `.hero__title`, `.modal__title`, `.empty-state__title`) use only `semibold` (600) or `bold` (700) — exactly the two weights requested, so no font file ships that nothing can select. The harness **fails** if a third weight is introduced without also requesting it, and fails if the display face is ever applied to a body-text selector.
+- The `@font-face` blocks are in **no** local stylesheet, so nothing shadows the CDN.
+
+### View-as-modal — confirmed everywhere "view" exists
+
+There are exactly **two** view actions in the app: `handleViewUser` (`Users.jsx:43`) and `handleViewPatient` (`Patients.jsx:51`). Both pages import and render the **existing shared `Modal`** — the same component the delete confirmation already used — and both render their detail body (`SelectedUser` / `SelectedPatient`) *inside* that `<Modal>`. No new modal, side panel, inline expansion or dedicated route was introduced, and the app still contains exactly one `Modal` component.
+
+The rendered dialogs confirm the a11y contract holds for the view action, not just for confirmations: real `role="dialog"`, `aria-modal="true"`, `aria-labelledby` pointing at the dialog's own `<h2>`, the record name as an `<h3>` directly under it, a focus trap, Escape/backdrop close, scroll lock, and a labelled close control. Every previously-shown field survives — user: Email, Role, Status, Favorite; patient: Email, Phone, Age, Gender, Status, Date of birth, Last visit, Created. An empty `lastVisit` renders an em dash, not blank or `undefined`.
+
+### Contrast recomputed — 23 pairs, and the code comments are true
+
+Computed with the WCAG relative-luminance formula from the resolved token values. All pass: text pairs ≥ 4.5:1, non-text pairs ≥ 3:1, every hero gradient stop ≥ 4.88:1 under white text, and each status badge on its own tint in the 4.76–7.40:1 range.
+
+The stronger check is that **the numbers written in the comments are the numbers the tokens actually produce**: `text-primary` 17.9:1, `text-secondary` 9.0:1, `text-muted` 6.2:1, `accent` 6.20:1 on white, `accent-subtle` 5.35:1 under the accent, and the hero's "every stop ≥ 4.88:1" all match to within 0.1. This is the check that caught two false claims in earlier phases, so it is asserted rather than trusted.
+
+### Accent restraint enumerated, not eyeballed
+
+Accent **fills** exist on exactly three selectors: `.btn-primary`, `.pill--active`, `.breakdown-bar-fill` (plus a disabled-hover variant of the button). Accent **tints** on exactly three: `.media-placeholder`, `.inline-message`, `.nav-link.active`. `--gradient-hero` has exactly **one** consumer (`.hero` on the Dashboard). `box-shadow` is confined to six chrome selectors: card, hero, stat-card, table-scroll, empty-state, modal. No view is dominated by purple.
+
+### Prior-phase invariants still hold
+
+`prefers-reduced-motion` neutralises both animation and transition. The `matchMedia` viewport fix is still a live `useSyncExternalStore` subscription with the legacy `addListener` path. Status is still never colour-only: every badge renders a text label **and** a filled `::before` dot, and no bare `.status-*` global class has leaked back into markup. No `console.log`/`debugger`/`TODO`/`FIXME`. No `<img>` anywhere in `src/` — placeholders are `role="img"` frames with a visible caption, never broken-image glyphs. `index.css` is imports-only; 110 tokens declared, 110 referenced, **zero dead**, 11 aliases all resolving, and no colour literal outside `tokens.css`.
+
+### Responsive cascade evaluated at 1440 / 1000 / 390
+
+Computed by parsing the media queries and applying them, not by grepping:
+
+| | 1440 | 1000 | 390 |
+| --- | --- | --- | --- |
+| Layout columns | `240px 1fr` | `200px 1fr` | `1fr` |
+| Sidebar | grid column | grid column | `position: fixed` drawer |
+| Menu button | `none` | `none` | `inline-flex` |
+| Header search | fixed width | fixed width | `1 1 auto` (flexes) |
+| Header date | shown | shown | dropped |
+| Dashboard columns | `2fr 1fr` | `1fr` | `1fr` |
+
+Boundaries confirmed exact at 767/768 and 1199/1200.
+
+### Data layer untouched
+
+`sortPatientsByCreatedAtDesc` (added in Part B) is pure — it does not mutate its input, returns every record including unparseable and missing dates (which sort last rather than crashing), and leaks no `NaN`. Dashboard and Reports still agree: the patient report's `total` (8) equals the store length, the status breakdown sums to 8, and the chart's `createdOverTime` sums to 8 via its `value` field. An empty dataset yields `0` throughout, never `NaN`. `REPORT_PERIODS` is derived from `PERIOD_MONTHS`, so the Dashboard pills and the Reports filter cannot drift.
+
+### One genuine observation, recorded not "fixed"
+
+`--color-accent-border` (`#c9bdff`) measures **1.72:1 on white**, below the 3:1 that WCAG 1.4.11 requires. It is used in exactly two places — `.media-placeholder` (the dashed "unfilled" frame) and `.inline-message` (the notice banner, whose left rule is the real signal). Neither is the boundary of an interactive control, so 1.4.11 does not apply, and both surfaces carry a second cue (a visible caption; a background tint and text). The harness now **asserts that this token is never used on an interactive boundary**, so if someone later puts it on a button or input, the check fails. Left as-is deliberately: darkening it would make the placeholder frame compete with the content it is meant to recede behind.
+
+### Harness bugs — mine, found by running them, none was an app defect
+
+1. **The media-query parser silently dropped every rule inside an `@media` block.** It located a rule's end with `indexOf("}")`, which finds the *inner* brace. This reported the dashboard as failing to collapse at 390px — a false alarm that would have sent me "fixing" working responsive CSS. Replaced with proper brace-depth matching.
+2. **The font `<link>` regex matched the wrong tag.** A lazy `[\s\S]*?` spanning from the first `<link>` captured the `favicon.svg` link, then the `preconnect`. Both made the font checks pass vacuously against an empty string. Fixed to match on the link's own attributes. (The prior phase recorded the same class of bug via `URLSearchParams` decoding `+` as a space.)
+3. **Content assertions ran against comments.** "bell", "theme", "task" and `<img>` all appear in *prose* that deliberately says those things are absent. Nine checks were failing because a comment mentioned the word. Comments are now stripped before any content assertion.
+4. **A `<link>`-shaped regex and an `aria-hidden` count** asserted six separate attributes where the code has one wrapper `aria-hidden` around all six glyphs — the implementation is better than the expectation.
+5. **`createdOverTime` rows were summed on `count`**; they expose `value`. Produced a spurious `NaN`.
+6. Three breakpoint and sidebar-width assertions demanded the literals `1200px`/`768px`/`240px` where the CSS correctly uses `max-width: 1199`/`767` and the `var(--sidebar-width)` token. The assertions now test the *effect* at the edges.
+
+### Open decision confirmed: Font Awesome left as-is
+
+`@fortawesome/fontawesome-free` is unchanged and remains the only non-React runtime dependency. `src/index.css` imports `fontawesome.min.css` + `solid.min.css` (not `all.min.css`), and exactly **one** webfont is emitted: `fa-solid-900-IAB4Droh.woff2`, **116.7 kB** (119.48 kB on disk). All six codepoints survive minification into the built CSS.
+
+**Recorded as the owner requested, not done:** inlining the six SVGs from the package's own `svgs/solid/` directory would drop the webfont and the ~17 kB gzipped codepoint map entirely, for roughly 1–2 kB total. It stays undone deliberately, to avoid touching working icon code during a restructure. This is a self-contained follow-up with no visual change.
+
+### Judgement calls, restated (unchanged from the implementation, recorded here as the audit's position)
+
+1. **The reference's to-do list was not faked.** This app has no tasks, assignments or due dates, so the slot became `QuickActions` — four links (Patients, Users, Reports, Activity) that are the things an operator actually does from this screen, every one of which navigates. A to-do list here would be fiction dressed as data.
+2. **The reference's Appointments column was not faked.** There is no scheduling concept, so the right-hand column became `RecentList` — the five most recently created patients, each with a status badge and a `MediaPlaceholder` avatar. The newest records are the nearest real analogue of "what's coming up", and they sit next to the patient count, which is the number they explain.
+3. **The single large metric is total patients**, not total users. Patients are this app's primary record type and the only entity with a care lifecycle; both figures still appear in the stat grid below, so the choice hides nothing.
+4. **Analytics reuses `useReportData` and `REPORT_PERIODS`** — the same hook and options the Reports page reads — so the Dashboard and Reports cannot disagree about a total. No chart logic was duplicated and no chart library was added.
+5. **The sidebar is split into `Workspace` and `Preferences`.** The app has a genuine primary/secondary split (five working pages vs. the one page that configures the app), so a single group would have been the artificial choice, not the two groups.
+6. **The profile card shows name and role only.** It reads real data from Settings and links to the page that edits exactly those fields. No rating, credential or plan tier was invented, because the app has no concept of any. An unset profile renders "Profile not set" / "Set your details in Settings" rather than a fabricated person.
+7. **No notification bell and no dark/light toggle.** This app has no notification inbox and no working theme. A control that does nothing is worse than no control; both are listed below as real work rather than built as decoration.
+8. **The header search targets Patients only.** It is a real form that navigates to `/patients?q=…`, and `Patients` reads the term from the URL, so the header box and the page box are one source of truth and a search survives a reload.
+9. **The header app name was demoted from `h1` to `<p class="header__title">`.** Every page owns exactly one `h1`; adding the hero would otherwise have given the Dashboard two. This reverses a Part A decision and is the one item in Part B that touches a deliberate earlier choice.
+
+### What still needs the project owner's decision
+
+1. **The project has no regression test suite, and the harnesses are ephemeral.** This is the most consequential item here. Three hundred-plus assertions have now been written twice and lost twice. Adding a runner (`vitest`, `node --test`) plus a committed test directory is a dependency and a convention change, so it was not done unilaterally — but without it, "the test suite still passes" is not a claim anyone can make about this repository.
+2. **No browser pass, still.** There is no headless browser on this machine. Everything above is computed contrast, an evaluated cascade, real server-rendered DOM and source analysis. **Nothing here is a rendered-pixel claim** and it must not be described as one. A human should look at the Dashboard, both dialogs, and a phone-width layout against the reference screenshots before this is called done.
+3. ~~**Roboto as the Google Sans substitute still needs confirming.**~~ **RESOLVED — the owner confirmed Roboto is acceptable.** Recorded as confirmed in the Part C section; the substitution stands unchanged.
+4. **Should the header `h1` demotion stand?** It reverses a Part A decision. If the app name should stay a heading, the page `h1` has to go instead — one of the two has to yield.
+5. **Notifications and theme remain unimplemented.** Settings still stores a `light`/`dark` preference and two notification flags that do nothing. Either build them or delete the dead fields — the header deliberately shows neither.
+6. **Font Awesome: 116.7 kB for six glyphs.** Not done, as instructed. The lean alternative is documented above.
+7. **No dark theme**, although the reference included a dark screenshot.
+8. **No real chart.** The analytics card is the same data as Reports with a proportional bar. A genuine column/area chart is a new dependency or a hand-built SVG and should be requested explicitly.
+9. **Should the header search cover Users, or both entities?** A product decision, not a styling one.
+10. **Two destructive actions remain non-undoable** (clear activity log, reset demo data), and the mobile drawer scrim is still a focusable full-surface `<button>`. Both carried forward from earlier phases.
+11. All Phase 1/2/3/3b/4/5/6/7 and Part A flags remain open as previously recorded, except where explicitly resolved above.
+
+---
+
+## Part C — sidebar fold, floating panel and header affordances (2026-09-30)
+
+**Outcome: implemented, verified by 737 computed assertions across four harnesses with 0 failures, `npm run lint` and `npm run build` clean. Twelve Part B assertions are marked SUPERSEDED because the owner reversed them in this pass — they are kept in place, not deleted, so a regression back to the old behaviour stays visible. Still no rendered-pixel or browser verification; see open items.**
+
+### Files touched, and nothing else
+
+| File | Change |
+| --- | --- |
+| `src/components/Sidebar.jsx` | Fold toggle, single sliding highlight, pinned footer, collapsed profile, measurement and reduced-motion handling |
+| `src/components/Header.jsx` | Two inert placeholders (theme, notifications) after the date |
+| `src/layouts/AdminLayout.jsx` | Owns the collapsed state, reads and writes it, adds the grid class |
+| `src/services/shellPreferenceStorage.js` | **New.** Persists the preference through the existing `createStorage` helper |
+| `src/styles/tokens.css` | Rail colours, rail geometry, float gap, shell duration, rail shadow — additions only |
+| `src/styles/shell.css` | The floating panel, the dark rail, the highlight, the drawer, reduced motion |
+| `src/styles/components.css` | The rail avatar tint, and nothing else |
+
+No page, provider, hook, data service, dependency, config or test file was touched. The harness asserts this from `git status`, not from a claim.
+
+### The sidebar is now a floating panel, not a grid column
+
+The panel is `position: sticky`, inset `--sidebar-float-gap` (12px) from the top and the inline edges, `margin: var(--sidebar-float-gap)` for the bottom inset, height `calc(100vh - var(--header-height) - (var(--sidebar-float-gap) * 2))`, with `--shadow-rail` rather than `--shadow-card` so a dark surface detaches from a near-white canvas. The grid track is what actually narrows: `var(--sidebar-width) 1fr` expanded, `var(--sidebar-width-collapsed) 1fr` folded, transitioned over `--duration-shell` (240ms) on the existing `--ease-standard`. **No bespoke spring**, because the system already has one curve and two is worse than one.
+
+The folded width is 68px — a real shrink, less than half of the 200px reduced width. The rail is icon-plus-padding, not a wide panel with the text hidden.
+
+### The one decision everything else rests on: the fold must not reflow the nav
+
+The owner asked for a highlight that slides, including *around* the fold. The obvious implementation — measure on resize, or reposition during the transition — is a drag-and-drop algorithm with a timing dependency, and it will drift.
+
+Instead the nav was made **geometrically identical in both states**, which makes drift impossible rather than unlikely:
+
+- A folded link keeps its **vertical** padding (`var(--space-2)`), only the horizontal padding and the gap go to zero.
+- A folded group label keeps its box via `visibility: hidden`, never `display: none`.
+- The link's own text is the only thing removed, with `display: none`.
+
+So `offsetTop` and `offsetHeight` of the active row are the same number before and after the fold. The highlight has nothing to catch up on. Both files say this in a comment at the rule, because it is invisible, non-obvious, and the first person to "tidy up" that padding will break the slide.
+
+This is why there is no `isRepositioning` state: `react-hooks/set-state-in-effect` forbids a synchronous passive-effect state update, and suppressing the lint was the wrong answer. Removing the need for the state was the right one.
+
+### One highlight element, not one per item
+
+A single `<span class="nav-indicator">` sits inside `.nav-groups`, which is `position: relative`, so the `offsetTop` that positions it and the `translateY` that moves it share one frame of reference. It is `height: 0`, `pointer-events: none`, `z-index: 0` under `z-index: 1` links, and `aria-hidden="true"` because the state is already carried by `aria-current` and a heavier weight — the block is never the only signal.
+
+It is measured from `.nav-link--active` with `useIsomorphicLayoutEffect` (so it is a `useEffect` on the server and does not warn), on mount, on pathname change, on collapse, on drawer open, and again on `ResizeObserver` of the nav list and on `document.fonts.ready` — a webfont swapping in changes row heights, and a highlight sized before that is a highlight sized wrong.
+
+**The highlight does not exist in the server render** (no layout, so no measurement) and is inserted by the layout effect before first paint. The harness asserts both halves of that, because a highlight rendered at `top: 0` on the server is a visible flash at the top of the nav on every load.
+
+### The rail is a dark island, so it was audited against itself
+
+A self-contained dark surface cannot inherit the light palette's contrast results. Every rail ratio is measured against `--color-rail` and the harness recomputes all of them from the token values.
+
+| Pair | Ratio | Used for |
+| --- | --- | --- |
+| `--color-rail-text` on `--color-rail` | **17.63:1** | Rail text, and the focus ring |
+| `--color-rail-text-muted` on `--color-rail` | **6.88:1** | Inactive rail icons |
+| `--color-rail-text-muted` on `--color-rail-hover` | **5.54:1** | Inactive rail icons on a hovered row |
+| `--color-text-primary` on `--color-rail-active` | **8.26:1** | Active rail row text |
+| `--color-rail-active` on `--color-rail` | **8.12:1** | The active block's edge against the rail |
+| `--color-accent` on `--color-rail` | **2.84:1** | *Rejected* — under the 3:1 that 1.4.11 wants of a state boundary |
+
+**The active block is light in both states.** Expanded it is `--color-accent-subtle`; folded it is `--color-rail-active` (`#b3a4ff`); both carry `--color-text-primary`. The *relationship* is identical across the fold, only the depth of the lavender changes. A saturated accent block is 2.84:1 on the rail and is also visually blinding, so it was rejected on measurement rather than taste.
+
+`--color-rail-active` is its own token and deliberately **not** a reuse of `--color-accent-border`: that one is a near-white border colour on a light surface, and a token named "border" should not end up as a fill.
+
+### Accessibility decisions, and what was deliberately not built
+
+- Nav links **always** carry `aria-label`, and it is the identical string to the visible label, so "label in name" holds when expanded and the link is still named when the text is `display: none`.
+- `title` is offered **only while folded**, because that is the only state with no visible text. **No custom tooltip was built**: `.nav-groups` is the scroll container and `overflow: hidden` on a nav item clips a tooltip, so a styled tooltip needs a portal and a positioned wrapper for six labels of information that a native tooltip already conveys. This is an open item, not an oversight.
+- The fold toggle is a real `<button>` with `aria-expanded={!isCollapsed}`, `aria-controls="app-sidebar"`, and a name that changes with the action ("Collapse sidebar" / "Expand sidebar").
+- The collapsed profile card gets `aria-label="Profile and settings"` **only while folded**, because that is when its two text lines are removed. Expanded it is named by its own content and is not named twice.
+- **The header placeholders use `aria-disabled`, not `disabled`.** A `disabled` button is not focusable, so it could not be discovered by a keyboard user at all, and its focus ring would be suppressed. They carry `data-shell-placeholder`, a label, a title explaining why, `cursor: not-allowed`, and **no handler of any kind** — the harness greps the button's own prop list to prove there is not one.
+- They are honest about what they are: each comment names the stored preference to wire into (`DEFAULT_SETTINGS.appearance.theme`, `settings.notifications.email` / `.system`). The theme comment also says plainly that **no dark palette exists in the token file today**, because wiring a toggle to nothing is the failure mode this pass was asked to avoid.
+
+### Persistence: a window property, not a user property
+
+`admin-dashboard.shell-preferences`, via the existing `createStorage(STORAGE_KEY, isValidPreference)` — the same `{ version, data }` envelope, the same `STORAGE_SCHEMA_VERSION`, the same fail-closed behaviour as every other stored resource. Nothing was reimplemented: the file contains no `JSON.parse` and no direct `localStorage` call.
+
+It is deliberately **not** in the Settings store. Settings is user-profile data that belongs to the person and is edited on a page. Whether the sidebar is folded is a property of this browser's window; reapplying it to a different account on the same browser would be wrong.
+
+`AdminLayout` reads it in a `useState` initialiser, so the rail is correct on the first paint, and writes it in an effect guarded by a ref, so the first render does not write back what it just read. The harness round-trips the real module through a fake `localStorage`: corrupt JSON is discarded and removed, a non-boolean is rejected, a future schema version is refused, a second unrelated preference survives, re-saving does not duplicate a key, and a simulated reload reads the stored value rather than a cached one.
+
+### Reduced motion: instant, not merely faster
+
+Three layers, and the third is the one that matters:
+
+1. `base.css` already zeroes `transition-duration` to `0.01ms !important` under `prefers-reduced-motion: reduce`, and nothing can override `!important`.
+2. The shell states its own intent in a matching block, so the intent is legible in the file that owns the animation.
+3. **`handleNavClick` sets the position synchronously when the preference is set.** A transition of 0.01ms can still paint one frame at the *old* offset, and one frame at the wrong offset is a visible jump. Positioning the highlight in the same event as the route change removes that frame entirely.
+
+### Mobile: the fold does not follow
+
+Below 768px the panel is a `position: fixed` drawer, inset by the same float gap, translated off-canvas when closed and `visibility: hidden` so it leaves the tab order. The drawer **ignores the persisted collapsed state**: it always opens at full width with labels and the light highlight, and the fold toggle is `display: none`. A persisted rail width applied to a drawer would leave the nav unusable, and hiding the toggle while leaving the state applied would be a control that does nothing.
+
+### Judgement calls
+
+1. **`--color-rail-hover` is a step, not a jump** — 1.24:1 against the rail, not 3:1. Hover on the rail is carried by the icon going from muted to full white *as well as* the fill, so the fill only has to be perceptible. An earlier value (1.13:1) was rejected as effectively invisible; 1.24:1 is a perceptible lift, and the muted icons still read at 5.54:1 on it.
+2. **The rail avatar is re-tinted, not recoloured.** The default near-white placeholder fill would be a bright chip in a dark panel, so the avatar uses `--color-rail-hover` with a `--color-rail-text-muted` silhouette. This is the only reason `components.css` is in scope at all.
+3. **The header placeholders are inert rather than absent.** Part B's position was that a control which does nothing is worse than no control; the owner has since asked for both affordances visibly present. Inert plus labelled plus honest-in-a-tooltip is the compromise, and the wiring points are documented in the file.
+4. **`--duration-shell` is 240ms, longer than `--duration-base` (180ms).** Both the width change and the highlight slide are spatial moves the eye has to follow across the panel, not colour fades.
+5. **No 3D tilt, no glassmorphism, no glow.** The reference rail is flat and dark; the only elevation anywhere is a shadow on the panel itself.
+6. **The active state is weight + `aria-current` + the block.** The 2px left border that Part B had is gone — it was part of the busy treatment the owner rejected.
+
+### What the verification actually did
+
+`package.json` still has no `test` script and there is still no test runner, so "the full existing test suite" remains unrunnable and is not claimed. Four harnesses were run by hand from `/tmp/opencode/`, per this project's convention:
+
+| Harness | Assertions | Covers |
+| --- | --- | --- |
+| `verify-shell.mjs` | **486** | Tokens, rail contrast, panel geometry, profile pinning, highlight mechanics, reduced motion, rail labelling, header placeholders, persistence round-trip, mobile drawer, server-rendered DOM, git scope |
+| `verify-partb.mjs` | 127 | Part B invariants (6 superseded) |
+| `render-partb.mjs` | 79 | Server-rendered DOM (4 superseded) |
+| `cascade-data.mjs` | 45 | Evaluated cascade at three widths, data layer (2 superseded) |
+| **Total** | **737** | **0 failures, 12 superseded** |
+
+Two things about this pass's harness are worth recording, because both had already produced false confidence once:
+
+**A green run was treated as worthless until the harness was shown to fail.** 27 deliberate mutations were injected one at a time — white text on the active rail row, the accent as the rail hover fill, the accent as the active block, a `display: none` group label, dropped vertical padding, a second drop shadow on the highlight, a nav list that cannot shrink, the bar animating `background-color` instead of `transform`, the reduced-motion rule deleted, the reduced-motion click fix removed, persistence bypassed, the shared storage helper swapped for `localStorage`, a click handler on a placeholder, a missing `aria-label`, a missing `aria-expanded`, an absolutely positioned profile card, a hard-coded `7px`, an out-of-scope file touched, four drifted contrast comments, an unverifiable ratio added, and a hover fill too dark to see. **26 of 27 were caught.** The one that was missed turned out to be a bad mutation needle rather than a weak check, and was re-run correctly. A harness that has never been shown to fail is not evidence of anything.
+
+**The defects the harness found in this pass's own work are real and are fixed:**
+
+- **Every contrast figure written into a comment in the three stylesheets was stale.** The comments claimed 16.78, 7.03, 7.69, 8.29 and 2.71 where the tokens actually produce 17.63, 6.88, 8.26, 8.12 and 2.84. They had been written before the values were last adjusted. All are corrected, and the harness now **re-derives every ratio literal from the token values and fails if a file does not contain the recomputed number** — including the pre-existing ones, and it fails if a ratio appears that it cannot account for. An earlier version of that check compared the computed value to a number typed into the harness, which only proved the harness agreed with itself; editing a comment to a wrong value still passed.
+- **`--color-rail-hover` at 1.13:1 was too dark to see** and was raised, which in turn changed the muted-on-hover ratio from 6.11:1 to 5.54:1, so that comment was corrected too.
+
+Six further defects were in the *harness* and are recorded because they are the kind that make a suite lie: a CSS parser that did not consume `@media` bodies (so a whole stylesheet could "pass" with the responsive and reduced-motion layers missing); a specificity counter that did not require a leading colon; elements with two classes encoded as two chain entries, which invented a plain `.nav-link` ancestor and let a `:not(.nav-link--active):hover` rule override the active row's colour; ancestor declarations applied to children regardless of inheritance, so the panel's own background appeared on every row; `:hover` and `:focus-visible` treated as structure rather than state, so hover rules won default-state comparisons; and SSR assertions written as literal `class=… href=… aria-label=…` strings, which match nothing because React emits attributes in prop order — they reported **0 named links** and read like a total accessibility failure when the markup was correct.
+
+### Still needs the project owner's decision
+
+1. **No regression suite.** Unchanged and still the most consequential item. 737 assertions have now been written and lost more than once. Without a committed runner, no one can make the claim "the tests pass" about this repository.
+2. **No browser pass.** Unchanged. Everything above is computed contrast, an evaluated cascade, real server-rendered DOM and source analysis. **Nothing here is a rendered-pixel claim.** A human should look at the expanded sidebar, the folded rail, the highlight mid-slide during a fold, a short viewport, and a phone-width drawer before this is called done.
+3. **A native `title` or a portalled tooltip on the rail?** The native tooltip is free and accessible; a styled one needs a portal because the nav list scrolls. Left as native.
+4. **Should the collapsed preference be per-breakpoint?** It is currently a single stored boolean treated as a desktop density choice and ignored on mobile. A user who folds the rail on a large screen and reopens it on a small one gets the folded value back on the large screen, which is the intent, but a per-breakpoint store is a defensible alternative.
+5. **The two header placeholders.** Build them (a dark palette does not exist; `settings.notifications` stores two flags that do nothing) or remove them. This pass deliberately did neither.
+6. **Notifications and theme remain unimplemented** — carried forward from Part B open item 5.
+7. All Part A and Part B open items remain open except the Roboto confirmation, which the owner has now given.
+
+---
+
+## Part D — the rail is light, and the first browser pass (2026-09-30)
+
+**Outcome: the compact sidebar is a light, near-white icon rail in the app's own
+palette instead of a dark island, and two defects that only exist in a rendered
+browser were found and fixed. 746 assertions pass, `npm run lint` and
+`npm run build` are clean.**
+
+### The dark rail was the design, not a bug — and the brief has changed
+
+The premise behind this pass was that something rogue was darkening the compact
+sidebar: a leftover dark-mode class, a stale token, or a media query meant for
+something else. **None of those was true, and the browser said so directly.**
+`html.class` and `body.class` were both empty; the only rule that matched the
+panel was `.sidebar.is-collapsed { background: var(--color-rail) }`; and the
+painted pixel was `rgb(25, 21, 48)` — exactly `--color-rail`, the value Part C
+had introduced on purpose from the "Channel Analytics" reference. The
+`max-width: 767px` drawer rules exist but do not apply at 1440px. So this was
+not a leak to hunt; it was a design decision being reversed on instruction, and
+the work was to reverse it properly rather than to hunt for a phantom.
+
+The rail is now `--color-rail: #f8f6ff` (one step off `--color-surface`, so it
+still reads as a distinct object), with the app's own hairline and the same
+`--shadow-card` as the expanded panel. It is no longer a special surface.
+
+### The soft lavender active block cannot exist on a light rail
+
+This is the one place where the change could not be a straight substitution, and
+the measurement is the whole argument. The expanded sidebar marks the active row
+with `--color-accent-subtle` under `--color-text-primary`. Reused on the rail,
+that block is **1.08:1 against it** — it carries no state boundary whatsoever,
+where WCAG 1.4.11 wants 3:1 of a boundary that identifies a state. The dark rail
+had been hiding this: the same light block on `#191530` measured 8.12:1 at its
+edge. **The dark rail was not wrong-looking, it was load-bearing for an
+accessibility claim that a light rail cannot make.**
+
+So the folded active row is the saturated `--color-accent`, which is 5.79:1
+against the rail and 6.20:1 under `--color-text-inverse`. The consequence is
+stated rather than smoothed over: **the relationship between block and text is
+inverted between the two states.** Expanded is a light block under dark text;
+folded it is a saturated block under white text. The active row therefore looks
+different after a fold, and that is a real, visible change, not a subtlety.
+
+The focus ring follows the same logic — back to the app's accent (5.79:1) rather
+than the white the dark rail required, except on the active row, where an accent
+ring on an accent block would be invisible, so it inverts to `--color-text-inverse`.
+
+### Two defects that paper verification could not have found
+
+1. **The rail could not hold its own padding.** The track includes the 12px float
+   gap on each side, so the 68px track painted a **44px** panel; minus the
+   panel's 16px inline padding and its border, the content box was **10px**. The
+   highlight block rendered as a 10px sliver, the row was 16px wide — under the
+   24px minimum target size in WCAG 2.5.8 — and every geometry assertion still
+   passed, because the harness reasoned about the *track* and the *vertical*
+   box, which were both fine. Fixed by widening the track to 76px (a 52px painted
+   panel) and giving the collapsed panel 8px inline padding, so the row is 34px.
+   Measured after: link 34×34, block 34×34.
+2. **The profile avatar hung over its own card.** The default 40px avatar is
+   wider than the 34px rail row, so it spilled 3px past the card on each side —
+   visible as soon as the card was hovered and tinted. The collapsed card now
+   drops its padding and the avatar uses `--control-height-sm`.
+
+Both are now asserted, and the rail geometry is asserted as *painted* width
+(track less the float gap) rather than track width, with a comment recording that
+the earlier arithmetic on the wrong box is what let the 10px sliver through.
+
+`components.css` is **untouched** again. The dark rail needed one rule there — a
+re-tint of the profile avatar, because a near-white fill was a bright chip in a
+dark panel — and with a light rail the default is already correct, so the file
+returned to pristine and the reasoning moved to the rail tokens, where a "do not
+add this back" note now lives.
+
+### What the browser confirmed about the last two features
+
+- **The highlight really slides.** 120ms into a route change the bar's transform
+  was `matrix(1, 0, 0, 1, 0, 64)` — mid-transition, not snapped — and it settled
+  38px lower with `aria-current` moved to the new item. One element, translated.
+- **The fold does not make the bar drift.** Sampled inside the page on a rAF
+  timeline across the fold, the active row's height was **34px at every single
+  sample** while the panel width interpolated 216 → 58px. The geometry the
+  indicator was measured against does not change, which is the whole reason the
+  bar stays glued to its row.
+- **The placeholders render and are genuinely inert.** Both are 34×34 buttons,
+  `aria-disabled="true"`, `data-shell-placeholder` set, `cursor: not-allowed`,
+  no `popover`, no handler. Clicking both left the DOM byte-identical
+  (22845 → 22845 characters), opened no dialog, and logged nothing.
+- **The mobile drawer is unaffected.** At 390px it is still a 240px fixed drawer
+  with 16px padding, labels visible, the soft-lavender block and dark active text
+  — the rail's 8px padding and its white active text do not leak into it.
+
+### Files changed
+
+- `src/styles/tokens.css` — the rail tokens repointed to the light palette;
+  `--sidebar-width-collapsed` 68px → 76px; `--shadow-rail` now aliases
+  `--shadow-card`; the avatar-override warning moved here.
+- `src/styles/shell.css` — collapsed padding, `width: 100%` on collapsed rows,
+  the accent active block with inverse text, the focus-ring inversion, the
+  avatar size, and a matching `padding-inline` restore inside the drawer media
+  query (the desktop `.sidebar.is-collapsed` rule outranks the drawer's
+  `.sidebar` rule on specificity, so without it the drawer would have inherited
+  the rail's 8px inset).
+- `PROJECT_NOTES.md` — this section.
+- `src/styles/components.css` is **not** in the list: it was reverted.
+
+### Verified
+
+746 assertions across four harnesses, 0 failures, 12 superseded Part B checks
+(`verify-shell` 495, `verify-partb` 127, `render-partb` 79, `cascade-data` 45);
+lint and build clean. The four new rail assertions were mutation-tested —
+restoring `#191530` produces 21 failures, the 68px track fails the row-width
+check, a soft-lavender block fails three contrast checks, and dropping
+`width: 100%` fails the block-span check.
+
+Rendered-pixel measurements were taken by decoding Chromium's own screenshot
+output and reading the values, in both states: rail surface `#f8f6ff`, active
+block `#5438ff`, block-to-surface 5.79:1, glyph-on-block 6.20:1.
+
+### Flags
+
+1. **The active row now looks different after a fold than before it.** Expanded is
+   a soft lavender block under dark text; folded it is a saturated purple block
+   under white text. This is forced by 1.4.11, but it is a visible change in the
+   relationship between the two states, and the alternative — accepting a 1.08:1
+   boundary — was rejected on measurement. Worth an owner's eye.
+2. **The expanded active block is still 1.16:1 at its edge**, which is the same
+   1.4.11 gap, inherited from Part B/C and left alone deliberately: softening it
+   would mean re-introducing the accent left border or the accent-tinted row that
+   the owner explicitly rejected. Flagged, not silently changed.
+3. **The rail is 1.07:1 against the page canvas**, exactly as the expanded panel
+   is 1.00:1. Surfaces in this system are separated by elevation, not by colour,
+   and the rail now takes the same card shadow as everything else. The old
+   dark-rail assertion that a rail must clear 3:1 against the canvas has been
+   replaced with the system rule, which no other surface would have passed either.
+4. **`admin-dashboard/opencode.json` appeared in the working tree.** It is the
+   Playwright MCP registration, written into the project by the tooling when the
+   browser tool was enabled — not application code and not part of this work. It
+   is untracked and was deliberately neither committed nor deleted; the scope
+   gate now allows it past only while it stays unstaged, and fails if it is
+   staged.
+5. **Still no committed test suite**, so the four harnesses remain throwaway files
+   in `/tmp`. What changed this pass is only that they can now drive a real
+   browser, which is a bigger gap than it was.
+6. **No visual sign-off.** A real browser was available and was used, but nothing
+   here is a human looking at the result. The measurements are painted pixels and
+   the screenshots exist; the judgement that the rail now *looks* right is still
+   the owner's.
+7. All Part A–C open items remain open except as noted above.

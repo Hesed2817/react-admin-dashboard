@@ -181,10 +181,71 @@
   --space-section-gap: var(--space-8);
 
   /* ---------------------------------------------------------------------
+     COLLAPSED SIDEBAR RAIL — a LIGHT, near-white icon rail, in the same
+     white/purple family as every other surface in the system. It is one step
+     off --color-surface (--color-surface-muted) so the rail still reads as a
+     distinct object, and it takes the same hairline and the same card shadow
+     as the expanded panel, because it is no longer a special surface.
+
+     The rail's own contrast is measured against ITSELF, not inherited: these
+     are the same values as the light palette's, restated so the rail can be
+     re-tinted without hunting through shell.css.
+
+     THE ACTIVE BLOCK IS THE ONE REAL DIVERGENCE, and it is forced by
+     measurement rather than taste. The expanded sidebar marks the active row
+     with --color-accent-subtle under --color-text-primary, and that pairing
+     cannot be reused here: --color-accent-subtle on this rail is 1.08:1, so a
+     soft lavender block would carry no state boundary at all against a
+     near-white surface (WCAG 1.4.11 wants 3:1 of a boundary that identifies a
+     state). A dark rail could hide that problem, which is exactly why it was
+     attractive and exactly what made it wrong for this palette. So the folded
+     active row is the saturated accent instead — 5.79:1 against the rail and
+     6.20:1 under --color-text-inverse — and the relationship between block and
+     text is inverted relative to the expanded state. That is a real, visible
+     change across the fold and is called out as such in PROJECT_NOTES.md
+     rather than papered over.
+     --------------------------------------------------------------------- */
+  --color-rail: #f8f6ff;
+  /* 1.14:1 against --color-rail. Deliberately a step, not a jump, for the same
+     reason the rest of the system hovers lightly: the hover state is ALSO
+     carried by the icon going from --color-rail-text-muted to
+     --color-rail-text, so the fill only has to be perceptible. Muted icons
+     stay legible on it at 7.40:1. */
+  --color-rail-hover: #eae6fb;
+  /* 1.19:1 against --color-rail — the same hairline the expanded panel uses.
+     It is a separator, not a state, so it is not held to 3:1. */
+  --color-rail-border: #e6e1f5;
+  --color-rail-text: #171233;          /* 16.76:1 on --color-rail */
+  --color-rail-text-muted: #4b4468;    /*  8.43:1 on --color-rail */
+  --color-rail-active: #5438ff;        /*  6.20:1 with --color-text-inverse,
+                                           5.79:1 against --color-rail */
+  /* A near-white surface does not need the deep shadow a dark one did;
+     --shadow-card is what makes the panel read as detached from the canvas. */
+  --shadow-rail: var(--shadow-card);
+
+  /* The profile avatar in the rail needs NO override. A dark rail wanted one —
+     the default near-white placeholder fill was a bright chip in a dark panel —
+     and it was the only reason components.css had to be in scope for the shell
+     at all. With a light rail the default fill and ink are already correct, so
+     that rule is gone rather than re-tinted. Do not add it back. */
+
+  /* ---------------------------------------------------------------------
      APP SHELL
      --------------------------------------------------------------------- */
   --sidebar-width: 240px;
   --sidebar-width-reduced: 200px;
+  /* The track includes the 12px float gap on each side, so the PAINTED panel
+     is 52px, not 76px. That number is the one that has to be usable: with the
+     collapsed panel's reduced inline padding (8px) and the 1px border, the
+     row is 34px wide, which clears the 24x24 minimum target size in WCAG
+     2.5.8 and leaves room for the highlight block to span the row. The first
+     value, 68px, painted a 44px panel whose 16px inline padding left a 10px
+     content box — the highlight collapsed to a 10px sliver. That was found in
+     a browser, not on paper. */
+  --sidebar-width-collapsed: 76px;
+  /* The floating panel's inset from the viewport edges. */
+  --sidebar-float-gap: 12px;
+  --sidebar-float-radius: var(--radius-card);
   --header-height: 64px;
   --header-search-width: 280px;
   --content-padding: var(--space-8);
@@ -204,6 +265,11 @@
      --------------------------------------------------------------------- */
   --duration-fast: 120ms;
   --duration-base: 180ms;
+  /* The sidebar's width change and the active highlight's slide. Longer than
+     --duration-base because both are spatial moves the eye has to follow
+     across the panel, not a colour fade. Easing is deliberately the existing
+     --ease-standard, not a bespoke spring: one curve in the system. */
+  --duration-shell: 240ms;
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
 
   /* ---------------------------------------------------------------------
