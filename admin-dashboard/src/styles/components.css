@@ -373,12 +373,73 @@ select.field-control {
   margin-bottom: var(--space-6);
   border-radius: var(--radius-card);
 
+  /* The banner's height is set here, not by whatever sits inside it. Without a
+     ceiling the illustration's intrinsic ratio wins: a 1892x1364 SVG scaled to
+     the banner's inner width renders 765.6px tall and drags `.hero` to
+     813.63px — 90% of a 900px viewport. `overflow: hidden` is the second half
+     of the guarantee, so even an uncapped child cannot paint past the banner's
+     own rounded edge. */
+  max-height: var(--hero-max-height);
+  overflow: hidden;
+
   background: var(--gradient-hero);
   box-shadow: var(--shadow-hero);
   color: var(--color-text-inverse);
 }
 
+/* The media slot — the white card the artwork rests on.
+
+   `flex: 0 0 auto` is load-bearing and not cosmetic. As a flex item the raw
+   <img> had an automatic minimum size equal to its own intrinsic width, so it
+   could not shrink below 1892px and it starved `.hero__content` to 0px. This
+   slot takes a definite box on both axes and refuses to negotiate, so the text
+   column's width is a function of the artwork's cap rather than of the
+   artwork's pixel dimensions. */
+.hero__media {
+  flex: 0 0 auto;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: var(--illustration-hero-card-width);
+  height: var(--illustration-hero-card-height);
+  /* The invariant the banner depends on, enforced by the cascade rather than
+     asserted in a comment: the card plus the banner's own block padding can
+     never exceed the banner's ceiling, so no artwork height can grow the
+     banner. Today 208 + 24 + 24 = 256 against a 272px ceiling. */
+  max-height: calc(var(--hero-max-height) - 2 * var(--space-6));
+  padding: var(--illustration-hero-card-padding);
+
+  background: var(--color-surface);
+  border-radius: var(--radius-control);
+  box-shadow: var(--shadow-hero-art);
+  overflow: hidden;
+}
+
+/* `object-fit: contain` with both dimensions at 100% is what "scales down
+   proportionally rather than cropping" actually requires: `max-height` alone
+   leaves the element's box at its intrinsic size and does nothing. The
+   artwork here is 1.387:1 and the card's content box is 1.217:1, so `contain`
+   letterboxes it horizontally instead of cropping the edges. */
+.hero__media .illustration {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
 .hero__content {
+  /* `width: 100%` is the fix for the shrink-to-fit collapse and it has to be
+     here, not only in the ≤767px block. Beside an illustration this column is
+     a flex item whose automatic minimum is its max-content width, so an
+     oversized sibling squeezes it to 0px and every word drops onto its own
+     line. `min-width: 0` lets it give way, `width: 100%` is the preferred size,
+     and `flex: 1 1 auto` lets it absorb what the capped artwork leaves over. */
+  flex: 1 1 auto;
+  width: 100%;
   min-width: 0;
 }
 
@@ -422,6 +483,25 @@ select.field-control {
   color: var(--color-accent-active);
 }
 
+/* When the banner is too narrow to carry both the copy and the artwork, it
+   carries the copy.
+
+   The artwork costs the banner 248px of card + 24px of gap + 64px of the
+   banner's own padding = 336px, and that comes straight out of the text
+   column. Measured with the card in place: at 768px the column fell to 174px
+   and the heading broke to three lines — the shrink-to-fit symptom again, just
+   less extremely than the 0px it used to collapse to. Above 1024px the column
+   is never narrower than 430px, which keeps the heading on one line.
+
+   So the breakpoint is where the copy stops fitting, not the phone breakpoint,
+   and it is deliberately a compound selector: it outranks `.hero__media`
+   without depending on where that rule is declared in this file. */
+@media (max-width: 1023px) {
+  .hero .hero__media {
+    display: none;
+  }
+}
+
 @media (max-width: 767px) {
   .hero {
     flex-direction: column;
@@ -434,17 +514,14 @@ select.field-control {
      width of the hero. Left unset it is shrink-to-fit (align-items:
      flex-start above), so it collapses to the greeting's max-content width
      and leaves the rest of the banner empty. Same fix as
-     .stat-highlight__media below. */
+     .stat-highlight__media below.
+
+     This now also holds in the base rule, so it is restated rather than
+     needed — kept explicit at the breakpoint because it is the one that was
+     originally diagnosed, and a reader checking the mobile fix should find it
+     here. */
   .hero__content {
     width: 100%;
-  }
-
-  /* `display: none` here needs the compound selector to outrank
-     `.media-placeholder { display: flex }`, which is declared later in this
-     file at the same specificity and was silently winning — so the
-     placeholder was still painted on mobile. */
-  .hero .hero__media {
-    display: none;
   }
 }
 
@@ -512,6 +589,23 @@ select.field-control {
   min-height: 0;
   padding: var(--space-2) var(--space-3);
   border-radius: var(--radius-control);
+}
+
+/* ---------------------------------------------------------------------
+   REAL ILLUSTRATION — a media slot that has an asset, the filled-in
+   counterpart to the placeholders above.
+
+   Sized entirely by the <img>'s own intrinsic ratio, never by a CSS height, so
+   a wider or taller artwork can be dropped into any slot without distorting it.
+   `max-width: 100%` is what keeps it inside its card when the viewport gets
+   narrow; the intrinsic width/height attributes on the element are what let
+   the browser reserve the box before the SVG has downloaded.
+   --------------------------------------------------------------------- */
+
+.illustration {
+  display: block;
+  max-width: 100%;
+  height: auto;
 }
 
 /* ---------------------------------------------------------------------

@@ -164,6 +164,11 @@
     0 6px 20px rgba(23, 18, 51, 0.06);
   --shadow-hero: 0 12px 32px rgba(84, 56, 255, 0.18);
   --shadow-dialog: 0 24px 60px rgba(23, 18, 51, 0.18);
+  /* The white illustration card that sits ON the hero gradient. It needs its
+     own shadow because --shadow-card is tuned for a white card on a near-white
+     page: at 0.06 alpha it disappears against the banner, and the card then
+     reads as a hole cut in the gradient rather than a card resting on it. */
+  --shadow-hero-art: 0 10px 24px rgba(23, 18, 51, 0.24);
 
   /* ---------------------------------------------------------------------
      SPACING — 4px grid. Favour 8 / 12 / 16 / 24 / 32.
@@ -311,6 +316,28 @@
   --media-placeholder-min-height: 96px;
   --media-placeholder-avatar-size: 40px;
   --media-placeholder-inline-width: 120px;
+
+  /* Real illustration slots. The hero's artwork is boxed to a fixed card on BOTH
+     axes, because a slot sized on one axis alone still lets the other axis be
+     set by the source file: with only a width, a 1892x1364 SVG renders 1062px
+     wide and 765px tall, and the banner grows to 813px around it.
+
+     The artwork therefore fills the card's content box and `object-fit: contain`
+     scales it proportionally inside it, so the card is what is measured and the
+     illustration's own pixel dimensions never enter the layout. */
+  --illustration-hero-card-width: 248px;
+  --illustration-hero-card-height: 208px;
+  --illustration-hero-card-padding: var(--space-3);
+
+  /* The banner's own height ceiling — the single number the hero art is
+     constrained BY, rather than the art constraining the banner.
+
+     272px is roughly one third of the 813.63px an uncapped 1892px-wide
+     illustration produced, and still comfortably more than the 131px of copy
+     the text column needs, so the ceiling never has to crop real content. It is
+     paired with `overflow: hidden` on `.hero` so the guarantee holds even if a
+     future illustration is dropped in without a matching card rule. */
+  --hero-max-height: 272px;
 
   /* ---------------------------------------------------------------------
      STATUS — the four record states.
