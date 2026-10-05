@@ -183,7 +183,7 @@ function Dashboard() {
                 <StatHighlight
                   label="Total patients"
                   value={patients.length}
-                  description={`${activePatients} under care · ${dischargedPatients} discharged · ${pendingPatients} awaiting review`}
+                  description={`${activePatients} Under care · ${dischargedPatients} Discharged · ${pendingPatients} Awaiting review`}
                   mediaLabel="Patient records illustration placeholder"
                 />
                 <QuickActions

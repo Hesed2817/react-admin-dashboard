@@ -114,9 +114,9 @@
                       font and the same neo-grotesque lineage, so it is the
                       closest licensed stand-in. Pending owner confirmation.
      --------------------------------------------------------------------- */
-  --font-heading: "Bricolage Grotesque", "Roboto", system-ui, -apple-system,
+  --font-heading: "Bricolage Grotesque", "Google Sans", system-ui, -apple-system,
     "Segoe UI", sans-serif;
-  --font-body: "Roboto", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: "Google Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
 
   --font-size-h1: 32px;
   --font-size-h2: 24px;

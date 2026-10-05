@@ -23,13 +23,7 @@ const GLYPHS = {
       <circle cx="8" cy="8.5" r="1.75" />
     </>
   ),
-  avatar: (
-    <>
-      <circle cx="12" cy="12" r="10.5" />
-      <circle cx="12" cy="9.5" r="3.5" />
-      <path d="M4.8 19.8a8 8 0 0 1 14.4 0" />
-    </>
-  ),
+  avatar: null,
 };
 
 const DEFAULT_LABEL = {
@@ -67,19 +61,28 @@ function MediaPlaceholder({
 
   return (
     <div className={classes} role="img" aria-label={accessibleName}>
-      <span className="media-placeholder__glyph" aria-hidden="true">
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          focusable="false"
-        >
-          {glyph}
-        </svg>
-      </span>
+      {kind === "avatar" ? (
+        <img
+          className="media-placeholder__avatar"
+          src="/avatars/profile-circle.svg"
+          alt=""
+          aria-hidden="true"
+        />
+      ) : (
+        <span className="media-placeholder__glyph" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            focusable="false"
+          >
+            {glyph}
+          </svg>
+        </span>
+      )}
 
       {hasCaption && (
         <p className="media-placeholder__label">{accessibleName}</p>

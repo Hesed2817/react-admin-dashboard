@@ -591,6 +591,15 @@ select.field-control {
   border-radius: var(--radius-control);
 }
 
+
+/* Avatar image inside placeholders — preserves the existing size/shape token */
+.media-placeholder--avatar .media-placeholder__avatar,
+.media-placeholder--inline .media-placeholder__avatar {
+  width: var(--media-placeholder-avatar-size);
+  height: var(--media-placeholder-avatar-size);
+  border-radius: 50%;
+  display: block;
+}
 /* ---------------------------------------------------------------------
    REAL ILLUSTRATION — a media slot that has an asset, the filled-in
    counterpart to the placeholders above.
@@ -648,14 +657,36 @@ select.field-control {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
+
+  /* Decorative background blobs: low-opacity, behind content, clipped to
+     rounded corners, and non-interactive. The blobs never compromise layout
+     or clickability, and are a token-only treatment. */
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.stat-highlight__blobs {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  opacity: 0.18;
+  z-index: 0;
+  transform: translateZ(0);
 }
 
 .stat-highlight__text {
   min-width: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .stat-highlight__value {
   margin: var(--space-1) 0 0;
+  font-size: calc(var(--font-size-metric) * 1.25);
 }
 
 .stat-highlight__description {
@@ -676,6 +707,11 @@ select.field-control {
     align-items: flex-start;
   }
 
+
+  .stat-highlight__illustration {
+    width: clamp(80px, 18vw, 160px);
+    height: auto;
+  }
   .stat-highlight__media {
     width: 100%;
   }
