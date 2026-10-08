@@ -1,0 +1,847 @@
+/* ==========================================================================
+   APP SHELL — layout, navigation and responsiveness.
+
+   Sidebar 240px expanded / 68px collapsed, header 64px, content padding 32px
+   at desktop.
+
+   The chrome (header + sidebar) is --color-surface, i.e. white. The canvas
+   behind it is --color-bg, the very light gray-lavender, so cards on the
+   canvas read as white without needing a heavy border to separate them.
+
+   THE SIDEBAR IS A FLOATING PANEL, not a bar. It is inset from the viewport
+   edges on all sides, rounded on every corner and shadowed, in both the
+   expanded and the collapsed state, and it is pinned to the window rather
+   than to the page: only the nav list inside it can scroll, so the profile
+   card can never be pushed below the fold.
+
+   The active nav item is marked by ONE sliding highlight block plus a heavier
+   font weight plus aria-current. No glow, no gradient, no accent-coloured
+   text: the block is the highlight.
+   ========================================================================== */
+
+.admin-layout {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  grid-template-rows: var(--header-height) 1fr;
+  min-height: 100vh;
+  background: var(--color-bg);
+  transition: grid-template-columns var(--duration-shell) var(--ease-standard);
+}
+
+/* The grid track collapses with the panel, so the content reclaims the space
+   rather than the rail shrinking on top of it. */
+.admin-layout.is-sidebar-collapsed {
+  grid-template-columns: var(--sidebar-width-collapsed) 1fr;
+}
+
+/* ---------------------------------------------------------------------
+   HEADER — functional, not dominant. Carries the mobile menu button.
+   --------------------------------------------------------------------- */
+
+.header {
+  grid-column: 1 / -1;
+  grid-row: 1;
+
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+
+  padding: 0 var(--space-6);
+  background: var(--color-surface);
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+/* The header title is deliberately small: the page owns the H1. */
+.header__title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0;
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-base);
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------
+   HEADER SEARCH — the reference's rounded, subtle search box with the
+   glyph inside. It submits a real form (see Header.jsx), so it navigates
+   rather than sitting there looking interactive.
+   --------------------------------------------------------------------- */
+
+.header-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  flex: 0 1 var(--header-search-width);
+  min-width: 0;
+  margin-left: auto;
+}
+
+.header-search__icon {
+  position: absolute;
+  left: var(--space-3);
+  display: inline-flex;
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.header-search__input {
+  width: 100%;
+  height: var(--control-height-sm);
+  padding: 0 var(--space-3) 0 calc(var(--space-3) * 2 + var(--icon-size) + var(--space-1));
+
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+
+  background: var(--color-surface-muted);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-control);
+}
+
+.header-search__input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.header-search__input:hover {
+  border-color: var(--color-border-control);
+}
+
+.header-search__input:focus {
+  background: var(--color-surface);
+  border-color: var(--color-accent);
+  outline: var(--focus-ring-width) solid var(--color-accent);
+  outline-offset: var(--focus-ring-offset);
+}
+
+/* Today's date. Real, static, and the last thing in the bar. */
+.header-date {
+  flex: 0 0 auto;
+  margin: 0;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+/* Menu button: hidden on desktop, shown below 768px. */
+.header-menu-button {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
+  padding: 0;
+
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  border: var(--border-width) solid var(--color-border-control);
+  border-radius: var(--radius-control);
+
+  cursor: pointer;
+}
+
+.header-menu-button:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+}
+
+/* ---------------------------------------------------------------------
+   HEADER PLACEHOLDER ICONS — theme toggle and notification bell.
+
+   These match the reference's position and shape: small, round, on a soft
+   tinted chip, immediately after the date. They are INERT by design (see
+   HEADER_PLACEHOLDERS in Header.jsx) — no handler, no state, nothing logged.
+
+   `aria-disabled` rather than `disabled`, so the control keeps its place in
+   the tab order and its focus ring. The not-allowed cursor and the muted
+   chip are what tell a mouse user it is not live.
+   --------------------------------------------------------------------- */
+
+.header-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
+  padding: 0;
+
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-pill);
+
+  cursor: not-allowed;
+}
+
+.header-icon-button:hover {
+  background: var(--color-surface-sunken);
+  color: var(--color-text-secondary);
+}
+
+.header-icon-button__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: var(--icon-size);
+  height: var(--icon-size);
+  font-size: var(--icon-size);
+  color: currentColor;
+}
+
+/* ---------------------------------------------------------------------
+   SIDEBAR — a floating, window-height panel.
+   --------------------------------------------------------------------- */
+
+.sidebar {
+  grid-column: 1;
+  grid-row: 2;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+
+  /* The floating inset, as margin so the grid track still owns the
+     horizontal space and the panel simply sits inside it. */
+  margin: var(--sidebar-float-gap);
+
+  /* Pinned to the WINDOW, not to the page: sticky within the grid area, with
+     an explicit window-relative height. This is the structural fix for the
+     profile card disappearing — the panel is never taller than the viewport,
+     so its bottom edge is always on screen. */
+  position: sticky;
+  top: var(--sidebar-float-gap);
+  align-self: start;
+  height: calc(100vh - var(--header-height) - (var(--sidebar-float-gap) * 2));
+  /* Guard only: the 1fr row is never shorter than 100vh - header, so this
+     cannot bite, but a short page must not stretch the panel either. */
+  max-height: 100%;
+
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--sidebar-float-radius);
+  box-shadow: var(--shadow-card);
+
+  transition: background-color var(--duration-shell) var(--ease-standard);
+}
+
+/* The nav groups are the ONLY scrollable region in the panel. min-height: 0
+   is required, or a flex child refuses to shrink below its content and the
+   panel itself becomes the scroller — which is what pushed the profile card
+   off screen before. */
+.nav-groups {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* One group: a label above its list. Stacking the list here is what keeps the
+   gap between the last item of a group and the next group's label, so the
+   spacing does not depend on the label's own margin. */
+.nav-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-group__label {
+  margin: 0 0 var(--space-2);
+  padding: 0 var(--space-3);
+
+  font-family: var(--font-body);
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-label);
+  text-transform: uppercase;
+
+  color: var(--color-text-muted);
+}
+
+.sidebar ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar li {
+  margin-bottom: var(--space-1);
+}
+
+/* ---------------------------------------------------------------------
+   ACTIVE HIGHLIGHT — one block, moved with a transform.
+
+   It is a sibling of the nav groups, absolutely positioned inside the
+   positioned .nav-groups, so the offsetTop/offsetHeight that position it and
+   the transform that moves it share one frame of reference. ONE element, not
+   one per item: changing the active item is a translate, so the movement is a
+   real slide rather than two elements fading in and out.
+
+   pointer-events: none, because it overlaps the links and must never take a
+   click. Out of flow, so it cannot affect the nav's own layout or height.
+   --------------------------------------------------------------------- */
+
+.nav-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 0;
+
+  z-index: 0;
+  pointer-events: none;
+}
+
+.nav-indicator__bar {
+  display: block;
+  width: 100%;
+
+  background: var(--color-accent-subtle);
+  border-radius: var(--radius-control);
+
+  transition: transform var(--duration-shell) var(--ease-standard);
+}
+
+/* ---------------------------------------------------------------------
+   NAV LINK — in the folded rail the icon IS the button; expanded, the icon
+   and the label together are.
+   --------------------------------------------------------------------- */
+
+.nav-link {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control);
+
+  font-family: var(--font-body);
+  font-size: var(--font-size-nav);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-snug);
+
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+
+/* Font Awesome glyph for each nav item. Inherits the link's colour so the
+   active/inactive distinction carries through to the icon, and is sized from
+   --icon-size-nav rather than Font Awesome's own scale. */
+.nav-link .nav-link__icon {
+  width: var(--icon-size-nav);
+  height: var(--icon-size-nav);
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  color: currentColor;
+  font-size: var(--icon-size-nav);
+}
+
+/* Hover tints the row it is on, and deliberately NOT the active row: that one
+   already carries the highlight block, and two overlapping treatments is what
+   made the old active state look busy. */
+.nav-link:not(.nav-link--active):hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+/* Active: weight, aria-current (from NavLink) and the highlight block. The
+   text colour deliberately does NOT turn accent — accent-on-tint is 5.35:1 on
+   the expanded sidebar but unreadable on the dark rail, and one rule has to
+   hold in both states. */
+.nav-link--active {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.nav-link:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-accent);
+  outline-offset: var(--focus-ring-offset-inset);
+}
+
+/* ---------------------------------------------------------------------
+   FOOTER — fold toggle and profile card, pinned to the bottom of the panel.
+   flex: 0 0 auto is what stops them shrinking when the nav list is long; the
+   nav above them is the part that gives way.
+   --------------------------------------------------------------------- */
+
+.sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex: 0 0 auto;
+}
+
+.sidebar-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+
+  flex: 0 0 auto;
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+
+  font-family: var(--font-body);
+  font-size: var(--font-size-nav);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-snug);
+  text-align: left;
+
+  background: transparent;
+  color: var(--color-text-secondary);
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-control);
+
+  cursor: pointer;
+}
+
+.sidebar-toggle:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text-primary);
+}
+
+.sidebar-toggle:focus-visible {
+  outline: var(--focus-ring-width) solid var(--color-accent);
+  outline-offset: var(--focus-ring-offset-inset);
+}
+
+/* ---------------------------------------------------------------------
+   PROFILE CARD — pinned to the bottom of the sidebar.
+
+   It shows the profile the Settings page actually stores, so it is a
+   NavLink to that page rather than a decorative tile with a dead click
+   target. There is no rating, credential or "pro plan" line here, because
+   this app has no concept of any of those.
+   --------------------------------------------------------------------- */
+
+.sidebar-profile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+
+  flex: 0 0 auto;
+  padding: var(--space-3);
+
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+
+  color: inherit;
+  text-decoration: none;
+}
+
+.sidebar-profile:hover {
+  background: var(--color-surface-muted);
+  border-color: var(--color-border-strong);
+  text-decoration: none;
+}
+
+.sidebar-profile__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sidebar-profile__name {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-profile__role {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------
+   COLLAPSED RAIL — the "Channel Analytics" state: a narrow, floating, dark,
+   icon-only rail whose icons are the buttons.
+
+   It is the app's only dark surface, so it carries its own colours
+   (--color-rail-*) and its own focus ring rather than inheriting the light
+   palette's. Every pair below is contrast-checked against the rail itself,
+   not against white.
+   --------------------------------------------------------------------- */
+
+.sidebar.is-collapsed {
+  background: var(--color-rail);
+  border-color: var(--color-rail-border);
+  box-shadow: var(--shadow-rail);
+  color: var(--color-rail-text);
+
+  /* The floating panel's 16px inline padding was sized for a 216px panel. On a
+     52px rail it consumed 32px and left a 10px content box, so the highlight
+     block became a sliver and the 16px link fell below the 24px minimum target
+     size. The vertical padding is untouched — see the fold-safety note below,
+     the indicator only depends on offsetTop/offsetHeight. */
+  padding-inline: var(--space-2);
+}
+
+/* The folded active block is the saturated accent, not the soft lavender the
+   expanded sidebar uses. This is forced by measurement, not chosen: soft
+   lavender on this rail is 1.08:1, which carries no state boundary at all,
+   while the accent is 5.79:1 against the rail and its white glyph sits at
+   6.20:1. The block therefore carries --color-text-inverse, so the "light
+   block, dark text" relationship that holds in the expanded sidebar is
+   deliberately inverted here. */
+.sidebar.is-collapsed .nav-indicator__bar {
+  background: var(--color-rail-active);
+}
+
+/* THE FOLD MUST NOT REFLOW THE NAV. Both of these are load-bearing:
+
+   - the group label keeps its box (visibility, not display), and
+   - a folded link keeps its VERTICAL padding,
+
+   so every row has the same height and the same offset in both states. That
+   is what lets the single sliding highlight stay glued to its row while the
+   panel narrows: the geometry it was measured against has not changed, so it
+   has nothing to catch up on. Change either one and the bar will visibly
+   drift out of its row for the length of the fold. */
+.sidebar.is-collapsed .nav-group__label {
+  visibility: hidden;
+}
+
+.sidebar.is-collapsed .nav-link__label {
+  display: none;
+}
+
+.sidebar.is-collapsed .nav-link,
+.sidebar.is-collapsed .sidebar-toggle {
+  justify-content: center;
+  gap: 0;
+  /* Vertical padding deliberately unchanged — see above. */
+  padding: var(--space-2);
+  /* The rail's rows are shrink-to-fit, so without this the link is only as
+     wide as its 16px glyph and the highlight block shrinks with it. */
+  width: 100%;
+  color: var(--color-rail-text-muted);
+}
+
+.sidebar.is-collapsed .nav-link--active {
+  color: var(--color-text-inverse);
+}
+
+.sidebar.is-collapsed .nav-link:not(.nav-link--active):hover,
+.sidebar.is-collapsed .sidebar-toggle:hover {
+  background: var(--color-rail-hover);
+  color: var(--color-rail-text);
+}
+
+/* The focus ring goes back to the app's own accent: on this rail the accent
+   measures 5.79:1, comfortably past the 3:1 a focus indicator needs, so the
+   white ring the dark rail required is no longer justified. The one exception
+   is the ACTIVE row, whose highlight block is that same accent — an accent
+   ring drawn on an accent block would be invisible, so it takes the inverse. */
+.sidebar.is-collapsed .nav-link:focus-visible,
+.sidebar.is-collapsed .sidebar-toggle:focus-visible,
+.sidebar.is-collapsed .sidebar-profile:focus-visible {
+  outline-color: var(--color-accent);
+}
+
+.sidebar.is-collapsed .nav-link--active:focus-visible {
+  outline-color: var(--color-text-inverse);
+}
+
+/* Folded, the card is just the avatar — centred, and still pinned. */
+.sidebar.is-collapsed .sidebar-profile {
+  justify-content: center;
+  /* No padding: the card is 34px wide, so any inset would leave the avatar
+     hanging over the card's own edge and outside its hover tint. */
+  padding: 0;
+  background: transparent;
+  border-color: var(--color-rail-border);
+}
+
+/* The default 40px avatar is wider than the 34px rail row, so it spilled over
+   the card it sits in. Found by measuring rendered boxes, not by reading CSS:
+   the 40px value is correct everywhere else. */
+.sidebar.is-collapsed .sidebar-profile .media-placeholder--avatar {
+  width: var(--control-height-sm);
+  min-height: var(--control-height-sm);
+  height: var(--control-height-sm);
+}
+
+.sidebar.is-collapsed .sidebar-profile:hover {
+  background: var(--color-rail-hover);
+  border-color: var(--color-rail-text-muted);
+}
+
+.sidebar.is-collapsed .sidebar-profile__text {
+  display: none;
+}
+
+/* Scrim behind the mobile drawer. Hidden on desktop. */
+.sidebar-scrim {
+  display: none;
+}
+
+/* ---------------------------------------------------------------------
+   CONTENT
+   --------------------------------------------------------------------- */
+
+.main-content {
+  grid-column: 2;
+  grid-row: 2;
+
+  padding: var(--content-padding);
+  min-width: 0; /* lets wide tables scroll instead of stretching the grid */
+  background: var(--color-bg);
+}
+
+/* ==========================================================================
+   RESPONSIVE
+
+   >= 1200px : full 240px sidebar                                        (default)
+   768-1199  : reduced sidebar, tighter padding
+   < 768px   : sidebar becomes a keyboard-accessible drawer
+   ========================================================================== */
+
+/* ---- 768px to 1199px: reduced sidebar, less padding ------------------- */
+@media (max-width: 1199px) {
+  .admin-layout {
+    grid-template-columns: var(--sidebar-width-reduced) 1fr;
+  }
+
+  .sidebar {
+    padding: var(--space-5) var(--space-3);
+  }
+
+  .main-content {
+    padding: var(--space-6);
+  }
+
+  .header {
+    padding: 0 var(--space-5);
+  }
+}
+
+/* ---- Below 768px: drawer --------------------------------------------- */
+@media (max-width: 767px) {
+  /* The collapsed-rail preference persists across viewports, and
+     `.admin-layout.is-sidebar-collapsed` sets an explicit two-column grid
+     (--sidebar-width-collapsed 1fr) with no breakpoint guard. On a phone that
+     overrode the single-track drawer grid above, so the 76px rail track
+     survived into mobile and `.main-content` — which the drawer block below
+     pins to grid-column 1 — was auto-placed into it. The whole page then
+     rendered inside 76px: cards floored at their own min-content (~99px),
+     overflowing their 44px parent, with text wrapping one or two words per
+     line. Reassert the single track after the collapsed rule so mobile stays
+     single-column whichever sidebar preference is stored. */
+  .admin-layout,
+  .admin-layout.is-sidebar-collapsed {
+    /* minmax(0, 1fr), not 1fr: a bare `1fr` floors the track at its
+       min-content, and min-content of the content column (cards, tables)
+       exceeds a narrow phone, which pushed the document sideways. */
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: var(--header-height) 1fr;
+  }
+
+  .header {
+    padding: 0 var(--space-4);
+  }
+
+  .header__title {
+    font-size: var(--font-size-caption);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* On a phone the bar is menu + title + search. The date is the first thing
+     to go, because it is the only part with no function to perform. */
+  .header-date {
+    display: none;
+  }
+
+  .header-search {
+    flex: 1 1 auto;
+  }
+
+  .header-menu-button {
+    display: inline-flex;
+  }
+
+  /* The sidebar leaves the grid and becomes an overlay. The floating inset,
+     the rounded corners and the shadow all survive, so the drawer is the
+     same panel rather than a different component. Sticky, align-self, the
+     window-relative height and the margin are all reset: top/bottom now
+     define the height, and a margin would double the inset. */
+  .sidebar {
+    position: fixed;
+    top: var(--sidebar-float-gap);
+    left: var(--sidebar-float-gap);
+    bottom: var(--sidebar-float-gap);
+    z-index: var(--z-drawer);
+
+    width: var(--sidebar-width);
+    max-width: var(--modal-width-max-viewport);
+    height: auto;
+    max-height: none;
+    margin: 0;
+    align-self: auto;
+
+    padding: var(--space-4);
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--sidebar-float-radius);
+    box-shadow: var(--shadow-card);
+
+    /* Past the left edge by its own width plus the inset, so nothing shows. */
+    transform: translateX(calc(-100% - var(--sidebar-float-gap)));
+    transition: transform var(--duration-base) var(--ease-standard);
+  }
+
+  /* The drawer is always the full labelled panel. It is opened on purpose in
+     order to navigate, and an icon-only drawer would be a worse way to do
+     that; the collapsed preference is a desktop density choice and does not
+     follow the user onto a phone. */
+  .sidebar.is-collapsed {
+    width: var(--sidebar-width);
+    background: var(--color-surface);
+    border-color: var(--color-border);
+    box-shadow: var(--shadow-card);
+    color: var(--color-text-primary);
+    /* The rail's reduced inline padding is a desktop-only concession to a
+       narrow panel. It is restated here because the desktop
+       .sidebar.is-collapsed rule has higher specificity than the .sidebar
+       rule above, so without this the drawer would inherit an 8px inset. */
+    padding-inline: var(--space-4);
+  }
+
+  .sidebar.is-collapsed .nav-group__label {
+    visibility: visible;
+  }
+
+  .sidebar.is-collapsed .nav-link__label {
+    display: revert;
+  }
+
+  .sidebar.is-collapsed .nav-link,
+  .sidebar.is-collapsed .sidebar-toggle {
+    justify-content: flex-start;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    color: var(--color-text-secondary);
+  }
+
+  .sidebar.is-collapsed .nav-link--active {
+    color: var(--color-text-primary);
+  }
+
+  .sidebar.is-collapsed .nav-indicator__bar {
+    background: var(--color-accent-subtle);
+  }
+
+  .sidebar.is-collapsed .nav-link:not(.nav-link--active):hover,
+  .sidebar.is-collapsed .sidebar-toggle:hover {
+    background: var(--color-surface-muted);
+    color: var(--color-text-primary);
+  }
+
+  .sidebar.is-collapsed .nav-link:focus-visible,
+  .sidebar.is-collapsed .sidebar-toggle:focus-visible,
+  .sidebar.is-collapsed .sidebar-profile:focus-visible {
+    outline-color: var(--color-accent);
+  }
+
+  .sidebar.is-collapsed .sidebar-profile {
+    justify-content: flex-start;
+    padding: var(--space-3);
+    background: var(--color-surface);
+    border-color: var(--color-border);
+  }
+
+  .sidebar.is-collapsed .sidebar-profile:hover {
+    background: var(--color-surface-muted);
+    border-color: var(--color-border-strong);
+  }
+
+  .sidebar.is-collapsed .sidebar-profile__text {
+    display: flex;
+  }
+
+  /* And the fold control itself goes: in the drawer it would change a
+     preference that the drawer ignores, i.e. a control that visibly does
+     nothing. */
+  .sidebar-toggle {
+    display: none;
+  }
+
+  .sidebar.is-open {
+    transform: translateX(0);
+    visibility: visible;
+  }
+
+  /* A closed drawer must be removed from the tab order and the a11y tree,
+     not merely moved off-screen. */
+  .sidebar:not(.is-open) {
+    visibility: hidden;
+  }
+
+  .main-content {
+    grid-column: 1;
+    padding: var(--space-5) var(--space-4);
+  }
+
+  /* Scrim only exists while the drawer is open. */
+  .sidebar-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-drawer-scrim);
+
+    background: var(--color-backdrop);
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   REDUCED MOTION
+
+   base.css already forces every transition in the app to 0.01ms under
+   prefers-reduced-motion, which is why the highlight jumps rather than slides
+   even without the JS in Sidebar.jsx. It is restated here so the shell's own
+   motion is legible in this file, and so the intent survives if that global
+   rule is ever narrowed.
+
+   Note what "instant" has to mean here: the sliding highlight must change
+   position immediately, not animate faster. Sidebar.jsx also sets the
+   indicator's position in the click handler when the preference is set,
+   because a 0.01ms transition can still paint one frame at the old offset.
+   --------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .admin-layout,
+  .sidebar,
+  .nav-indicator__bar,
+  .nav-link,
+  .sidebar-toggle,
+  .header-icon-button {
+    transition: none;
+  }
+}

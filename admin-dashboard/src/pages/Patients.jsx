@@ -1,39 +1,55 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router";
 import { AddPatientForm } from "../components/AddPatientForm";
+import { Button } from "../components/Button";
 import { EditPatientForm } from "../components/EditPatientForm";
+import { EmptyState } from "../components/EmptyState";
+import { Field } from "../components/Field";
+import { Icon } from "../components/Icon";
 import { Modal } from "../components/Modal";
 import { PageActions } from "../components/PageActions";
 import { PageHeader } from "../components/PageHeader";
 import { PatientTable } from "../components/PatientTable";
 import { SelectedPatient } from "../components/SelectedPatient";
 import { usePatients } from "../hooks/usePatients";
+import {
+  ALL_STATUSES,
+  PATIENT_STATUS_OPTIONS,
+} from "../constants/statuses";
+import { filterPatients } from "../utils/patients";
 
 function Patients() {
   const { patients, loading, error, addPatient, updatePatient, deletePatient } =
     usePatients();
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [selectedPatient, setSelectedPatient] = useState(null);
+  // The header search hands its term over in the URL, so a search survives a
+  // reload and can be shared as a link. This page's own search box edits the
+  // same state, so the two never disagree.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchTerm = searchParams.get("q") || "";
+  const [statusFilter, setStatusFilter] = useState(ALL_STATUSES);
+  const [selectedPatientId, setSelectedPatientId] = useState(null);
   const [editingPatient, setEditingPatient] = useState(null);
   const [patientToDelete, setPatientToDelete] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isAddPatientModalOpen, setIsAddPatientModalOpen] = useState(false);
 
-  const filteredPatients = patients.filter((patient) => {
-    const search = searchTerm.trim().toLowerCase();
-    const matches =
-      patient.name.toLowerCase().includes(search) ||
-      patient.email.toLowerCase().includes(search) ||
-      patient.phone.toLowerCase().includes(search);
-    const statusMatches =
-      statusFilter === "All" || patient.status === statusFilter;
+  const selectedPatient =
+    patients.find((patient) => patient.id === selectedPatientId) || null;
 
-    return matches && statusMatches;
+  const filteredPatients = filterPatients(patients, {
+    searchTerm,
+    statusFilter,
   });
 
+  // The term lives in the URL, not in state, so the header search and this
+  // page's search box are the same single source. `replace` keeps a search
+  // from filling the back button with one entry per keystroke.
+  function handleSearchChange(value) {
+    setSearchParams(value ? { q: value } : {}, { replace: true });
+  }
+
   function handleViewPatient(id) {
-    const patient = patients.find((patient) => patient.id === id);
-    setSelectedPatient(patient);
+    setSelectedPatientId(id);
   }
 
   function handleAddPatient(newPatient) {
@@ -42,31 +58,24 @@ function Patients() {
   }
 
   function handleEditPatient(id) {
-    const patient = patients.find((patient) => patient.id === id);
-    setEditingPatient(patient);
+    setEditingPatient(patients.find((patient) => patient.id === id));
   }
 
   function handleSavePatient(updatedPatient) {
     updatePatient(updatedPatient);
-
-    if (selectedPatient && selectedPatient.id === updatedPatient.id) {
-      setSelectedPatient(updatedPatient);
-    }
-
     setEditingPatient(null);
   }
 
   function handleDeletePatient(id) {
-    const patient = patients.find((patient) => patient.id === id);
-    setPatientToDelete(patient);
+    setPatientToDelete(patients.find((patient) => patient.id === id));
     setIsDeleteModalOpen(true);
   }
 
   function handleConfirmDelete() {
     deletePatient(patientToDelete.id);
 
-    if (selectedPatient && selectedPatient.id === patientToDelete.id) {
-      setSelectedPatient(null);
+    if (selectedPatientId === patientToDelete.id) {
+      setSelectedPatientId(null);
     }
 
     setPatientToDelete(null);
@@ -88,46 +97,74 @@ function Patients() {
         title="Patients"
         description="Manage and view registered patients"
       >
-        <PageActions>
-          <select
-            name="patient-status-filter"
-            id="patient-filter"
-            value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
-          >
-            <option value="All">All</option>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-            <option value="Pending">Pending</option>
-          </select>
+        <PageActions label="Patient filters and search">
+          <Field label="Status">
+            {(controlProps) => (
+              <select
+                className="field-control"
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value)}
+                {...controlProps}
+              >
+                <option value={ALL_STATUSES}>All statuses</option>
+                {PATIENT_STATUS_OPTIONS.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            )}
+          </Field>
 
-          <input
-            type="text"
-            placeholder="Search patients..."
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-          />
-          <button type="button" onClick={handleAddPatientModal}>
-            Add Patient
-          </button>
+          <Field label="Search patients" className="search-field">
+            {(controlProps) => (
+              <>
+                <Icon name="search" />
+                <input
+                  type="text"
+                  className="field-control"
+                  placeholder="Name, email or phone"
+                  value={searchTerm}
+                  onChange={(event) => handleSearchChange(event.target.value)}
+                  {...controlProps}
+                />
+              </>
+            )}
+          </Field>
+
+          <div className="page-actions__primary">
+            <Button variant="primary" onClick={handleAddPatientModal}>
+              <Icon name="plus" />
+              Add Patient
+            </Button>
+          </div>
         </PageActions>
       </PageHeader>
 
       {isAddPatientModalOpen && (
-        <Modal onClose={() => setIsAddPatientModalOpen(false)}>
+        <Modal title="Add patient" onClose={() => setIsAddPatientModalOpen(false)}>
           <AddPatientForm onAddPatient={handleAddPatient} />
         </Modal>
       )}
 
-      {isDeleteModalOpen && (
-        <Modal onClose={handleCancelDelete} onConfirm={handleConfirmDelete}>
-          <h3>Delete Patient</h3>
-          <p>Are you sure you want to delete {patientToDelete.name}?</p>
+      {isDeleteModalOpen && patientToDelete && (
+        <Modal
+          title="Delete patient"
+          onClose={handleCancelDelete}
+          onConfirm={handleConfirmDelete}
+          confirmLabel="Delete patient"
+          confirmVariant="danger"
+        >
+          <p>
+            Are you sure you want to delete{" "}
+            <strong>{patientToDelete.name}</strong>? This permanently removes the
+            record and cannot be undone.
+          </p>
         </Modal>
       )}
 
       {editingPatient && (
-        <Modal onClose={() => setEditingPatient(null)}>
+        <Modal title="Edit patient" onClose={() => setEditingPatient(null)}>
           <EditPatientForm
             key={editingPatient.id}
             onSave={handleSavePatient}
@@ -137,23 +174,47 @@ function Patients() {
       )}
 
       {loading ? (
-        <p>Loading patients...</p>
+        <div className="loading" role="status" aria-live="polite">
+          <span>Loading patients...</span>
+          <span className="loading__bar" />
+        </div>
       ) : error ? (
-        <p>{error}</p>
+        <p className="inline-message inline-message--error" role="alert">
+          {error}
+        </p>
+      ) : patients.length === 0 ? (
+        <EmptyState
+          title="No patients yet"
+          message="Add your first patient to get started."
+          icon="plus"
+        >
+          <Button variant="primary" onClick={handleAddPatientModal}>
+            <Icon name="plus" />
+            Add Patient
+          </Button>
+        </EmptyState>
+      ) : filteredPatients.length === 0 ? (
+        <EmptyState
+          title="No matches"
+          message="No patients match the current search and filters."
+          icon="search"
+        />
       ) : (
-        <>
-          {filteredPatients.length === 0 ? (
-            <p>No patients found.</p>
-          ) : (
-            <PatientTable
-              patients={filteredPatients}
-              onViewPatient={handleViewPatient}
-              onEditPatient={handleEditPatient}
-              onDeletePatient={handleDeletePatient}
-            />
-          )}
-          {selectedPatient && <SelectedPatient patient={selectedPatient} />}
-        </>
+        <PatientTable
+          patients={filteredPatients}
+          onViewPatient={handleViewPatient}
+          onEditPatient={handleEditPatient}
+          onDeletePatient={handleDeletePatient}
+        />
+      )}
+
+      {selectedPatient && (
+        <Modal
+          title="Patient details"
+          onClose={() => setSelectedPatientId(null)}
+        >
+          <SelectedPatient patient={selectedPatient} />
+        </Modal>
       )}
     </div>
   );

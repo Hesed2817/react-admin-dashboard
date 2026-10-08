@@ -15,9 +15,14 @@ function isValidUser(user) {
   );
 }
 
+const userMigrations = {
+  1: (users) => users,
+};
+
 const { getStoredItems: getStoredUsers, saveItems: saveUsers } = createStorage(
   STORAGE_KEY,
   isValidUser,
+  userMigrations,
 );
 
 export { getStoredUsers, saveUsers };

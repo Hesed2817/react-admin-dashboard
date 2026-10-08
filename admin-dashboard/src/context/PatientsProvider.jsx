@@ -4,12 +4,16 @@ import {
   getStoredPatients,
   savePatients,
 } from "../services/patientStorage";
+import { nextId } from "../utils/ids";
 import { PatientsContext } from "./PatientsContext";
+import { useActivities } from "../hooks/useActivities";
 
 function PatientsProvider({ children }) {
+  const { recordActivity } = useActivities();
   const [patients, setPatients] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
     async function loadPatients() {
@@ -21,52 +25,76 @@ function PatientsProvider({ children }) {
           return;
         }
 
-        const loadedPatients = await getPatients();
-        setPatients(loadedPatients);
-        savePatients(loadedPatients);
+        setPatients(await getPatients());
       } catch (error) {
         setError(error.message);
       } finally {
         setLoading(false);
+        setIsHydrated(true);
       }
     }
 
     loadPatients();
   }, []);
 
-  function commitPatients(nextPatients) {
-    setPatients(nextPatients);
-    savePatients(nextPatients);
-  }
+  useEffect(() => {
+    if (isHydrated) {
+      savePatients(patients);
+    }
+  }, [isHydrated, patients]);
 
   function addPatient(newPatient) {
-    const nextId =
-      patients.reduce(
-        (maxId, patient) => Math.max(maxId, Number(patient.id) || 0),
-        0,
-      ) + 1;
-
     const patientWithId = {
       ...newPatient,
-      id: nextId,
+      id: nextId(patients),
       createdAt: new Date().toISOString(),
     };
 
-    commitPatients([...patients, patientWithId]);
+    setPatients((previousPatients) => [...previousPatients, patientWithId]);
+    recordActivity({
+      type: "created",
+      message: `Patient "${patientWithId.name}" created`,
+      entityType: "patient",
+      entityId: patientWithId.id,
+    });
   }
 
   function updatePatient(updatedPatient) {
-    commitPatients(
-      patients.map((patient) =>
+    setPatients((previousPatients) =>
+      previousPatients.map((patient) =>
         patient.id === updatedPatient.id
           ? { ...patient, ...updatedPatient }
           : patient,
       ),
     );
+    recordActivity({
+      type: "updated",
+      message: `Patient "${updatedPatient.name}" updated`,
+      entityType: "patient",
+      entityId: updatedPatient.id,
+    });
   }
 
   function deletePatient(id) {
-    commitPatients(patients.filter((patient) => patient.id !== id));
+    const deletedPatient = patients.find((patient) => patient.id === id);
+
+    if (!deletedPatient) {
+      return;
+    }
+
+    setPatients((previousPatients) =>
+      previousPatients.filter((patient) => patient.id !== id),
+    );
+    recordActivity({
+      type: "deleted",
+      message: `Patient "${deletedPatient.name}" deleted`,
+      entityType: "patient",
+      entityId: deletedPatient.id,
+    });
+  }
+
+  async function resetPatients() {
+    setPatients(await getPatients());
   }
 
   return (
@@ -78,6 +106,7 @@ function PatientsProvider({ children }) {
         addPatient,
         updatePatient,
         deletePatient,
+        resetPatients,
       }}
     >
       {children}

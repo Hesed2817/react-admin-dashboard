@@ -1,3 +1,28 @@
+import {
+  STATUS_ACTIVE,
+  STATUS_INACTIVE,
+  STATUS_DISCHARGED,
+  STATUS_PENDING,
+  USER_STATUS_OPTIONS,
+  PATIENT_STATUS_OPTIONS,
+} from "../constants/statuses";
+import { GENDER_OPTIONS } from "../constants/genders";
+import { calculateAge } from "./patients";
+
+const ALL_CATEGORIES = "All";
+const FAVORITE_CATEGORY = "Favorites";
+const UNKNOWN_LABEL = "Unknown";
+
+const AGE_GROUPS = [
+  { key: "0-17", label: "0-17", min: 0, max: 17 },
+  { key: "18-34", label: "18-34", min: 18, max: 34 },
+  { key: "35-44", label: "35-44", min: 35, max: 44 },
+  { key: "45-64", label: "45-64", min: 45, max: 64 },
+  { key: "65+", label: "65+", min: 65, max: Infinity },
+];
+
+const MAX_BAR_PERCENT = 100;
+
 const MONTH_NAMES = [
   "Jan",
   "Feb",
@@ -18,6 +43,20 @@ const PERIOD_MONTHS = {
   "6m": 6,
   "12m": 12,
 };
+
+// The only description of the period filter there is. REPORT_PERIODS is
+// derived from PERIOD_MONTHS rather than written out again, so a new window
+// cannot be added to one map and forgotten in the other.
+const PERIOD_LABELS = {
+  all: "All time",
+  "6m": "Last 6 months",
+  "12m": "Last 12 months",
+};
+
+const REPORT_PERIODS = Object.keys(PERIOD_MONTHS).map((value) => ({
+  value,
+  label: PERIOD_LABELS[value],
+}));
 
 function toValidDate(value) {
   if (!value) {
@@ -47,7 +86,7 @@ function filterByPeriod(items, getDate, period) {
 }
 
 function filterByCategory(items, category, predicateFor) {
-  if (!category || category === "All") {
+  if (!category || category === ALL_CATEGORIES) {
     return items;
   }
 
@@ -90,26 +129,123 @@ function groupByMonth(items, getDate) {
     }));
 }
 
-function buildUserReport(users, { period = "all", category = "All" } = {}) {
+function toSharePercent(count, total) {
+  if (!Number.isFinite(count) || !Number.isFinite(total) || total <= 0) {
+    return 0;
+  }
+
+  return Math.round((count / total) * 100);
+}
+
+function toBarPercent(count, max) {
+  if (!Number.isFinite(count) || !Number.isFinite(max) || max <= 0) {
+    return 0;
+  }
+
+  return Math.round((count / max) * MAX_BAR_PERCENT);
+}
+
+function buildBreakdownRows(entries, total) {
+  const max = entries.reduce((highest, entry) => Math.max(highest, entry.count), 0);
+
+  return entries.map((entry) => ({
+    ...entry,
+    share: toSharePercent(entry.count, total),
+    bar: toBarPercent(entry.count, max),
+  }));
+}
+
+function buildStatusBreakdown(items, statusOptions) {
+  return buildBreakdownRows(
+    statusOptions.map((status) => ({
+      key: status,
+      label: status,
+      count: countBy(items, (item) => item.status === status),
+    })),
+    items.length,
+  );
+}
+
+function buildGenderBreakdown(patients) {
+  const entries = GENDER_OPTIONS.map((gender) => ({
+    key: gender,
+    label: gender,
+    count: countBy(patients, (patient) => patient.gender === gender),
+  }));
+
+  const known = countBy(patients, (patient) =>
+    GENDER_OPTIONS.includes(patient.gender),
+  );
+
+  if (patients.length > known) {
+    entries.push({
+      key: UNKNOWN_LABEL,
+      label: UNKNOWN_LABEL,
+      count: patients.length - known,
+    });
+  }
+
+  return buildBreakdownRows(entries, patients.length);
+}
+
+function toAgeGroupKey(patient) {
+  const age = calculateAge(patient.dateOfBirth);
+
+  if (age === null || age < 0) {
+    return UNKNOWN_LABEL;
+  }
+
+  const group = AGE_GROUPS.find(
+    (candidate) => age >= candidate.min && age <= candidate.max,
+  );
+
+  return group ? group.key : UNKNOWN_LABEL;
+}
+
+function buildAgeGroupBreakdown(patients) {
+  const entries = AGE_GROUPS.map((group) => ({
+    key: group.key,
+    label: group.label,
+    count: countBy(patients, (patient) => toAgeGroupKey(patient) === group.key),
+  }));
+
+  const unknown = countBy(patients, (patient) => toAgeGroupKey(patient) === UNKNOWN_LABEL);
+
+  if (unknown > 0) {
+    entries.push({
+      key: UNKNOWN_LABEL,
+      label: UNKNOWN_LABEL,
+      count: unknown,
+    });
+  }
+
+  return buildBreakdownRows(entries, patients.length);
+}
+
+function buildUserReport(
+  users,
+  { period = "all", category = ALL_CATEGORIES } = {},
+) {
   const scopedUsers = filterByPeriod(users, (user) => user.createdAt, period);
   const reportUsers = filterByCategory(scopedUsers, category, (value) =>
-    value === "Favorites"
+    value === FAVORITE_CATEGORY
       ? (user) => user.isFavorite === true
       : (user) => user.status === value,
   );
 
   return {
     total: reportUsers.length,
-    active: countBy(reportUsers, (user) => user.status === "Active"),
-    inactive: countBy(reportUsers, (user) => user.status === "Inactive"),
+    active: countBy(reportUsers, (user) => user.status === STATUS_ACTIVE),
+    inactive: countBy(reportUsers, (user) => user.status === STATUS_INACTIVE),
     favorite: countBy(reportUsers, (user) => user.isFavorite === true),
     createdOverTime: groupByMonth(reportUsers, (user) => user.createdAt),
+    statusBreakdown: buildStatusBreakdown(reportUsers, USER_STATUS_OPTIONS),
   };
 }
 
 function buildPatientReport(
   patients,
-  { period = "all", category = "All" } = {},
+  { period = "all", category = ALL_CATEGORIES } = {},
 ) {
   const scopedPatients = filterByPeriod(
     patients,
@@ -124,17 +260,42 @@ function buildPatientReport(
 
   return {
     total: reportPatients.length,
-    active: countBy(reportPatients, (patient) => patient.status === "Active"),
-    inactive: countBy(
+    active: countBy(
       reportPatients,
-      (patient) => patient.status === "Inactive",
+      (patient) => patient.status === STATUS_ACTIVE,
     ),
-    pending: countBy(reportPatients, (patient) => patient.status === "Pending"),
+    discharged: countBy(
+      reportPatients,
+      (patient) => patient.status === STATUS_DISCHARGED,
+    ),
+    pending: countBy(
+      reportPatients,
+      (patient) => patient.status === STATUS_PENDING,
+    ),
     createdOverTime: groupByMonth(
       reportPatients,
       (patient) => patient.createdAt,
     ),
+    statusBreakdown: buildStatusBreakdown(
+      reportPatients,
+      PATIENT_STATUS_OPTIONS,
+    ),
+    genderBreakdown: buildGenderBreakdown(reportPatients),
+    ageGroupBreakdown: buildAgeGroupBreakdown(reportPatients),
   };
 }
 
-export { buildUserReport, buildPatientReport, groupByMonth };
+export {
+  buildUserReport,
+  buildPatientReport,
+  buildStatusBreakdown,
+  buildGenderBreakdown,
+  buildAgeGroupBreakdown,
+  groupByMonth,
+  toSharePercent,
+  toBarPercent,
+  AGE_GROUPS,
+  PERIOD_MONTHS,
+  REPORT_PERIODS,
+  ALL_CATEGORIES,
+};

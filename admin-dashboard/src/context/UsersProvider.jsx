@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react";
 import { getUsers, deriveUserCreatedAt } from "../services/userService";
 import { getStoredUsers, saveUsers } from "../services/userStorage";
+import { nextId } from "../utils/ids";
+import { useActivities } from "../hooks/useActivities";
 import { UsersContext } from "./UsersContext";
 
 function UsersProvider({ children }) {
+  const { recordActivity } = useActivities();
   const [users, setUsers] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
     async function loadUsers() {
@@ -14,67 +18,109 @@ function UsersProvider({ children }) {
         const storedUsers = getStoredUsers();
 
         if (storedUsers) {
-          const migratedUsers = storedUsers.map((user) =>
-            user.createdAt
-              ? user
-              : { ...user, createdAt: deriveUserCreatedAt(user.id) },
+          setUsers(
+            storedUsers.map((user) =>
+              user.createdAt
+                ? user
+                : { ...user, createdAt: deriveUserCreatedAt(user.id) },
+            ),
           );
-          setUsers(migratedUsers);
-          saveUsers(migratedUsers);
           return;
         }
 
-        const loadedUsers = await getUsers();
-        setUsers(loadedUsers);
-        saveUsers(loadedUsers);
+        setUsers(await getUsers());
       } catch (error) {
         setError(error.message);
       } finally {
         setLoading(false);
+        setIsHydrated(true);
       }
     }
 
     loadUsers();
   }, []);
 
-  function commitUsers(nextUsers) {
-    setUsers(nextUsers);
-    saveUsers(nextUsers);
-  }
+  useEffect(() => {
+    if (isHydrated) {
+      saveUsers(users);
+    }
+  }, [isHydrated, users]);
 
   function addUser(newUser) {
-    const nextId =
-      users.reduce((maxId, user) => Math.max(maxId, Number(user.id) || 0), 0) +
-      1;
-
     const userWithId = {
       ...newUser,
-      id: nextId,
+      id: nextId(users),
       isFavorite: false,
       createdAt: new Date().toISOString(),
     };
 
-    commitUsers([...users, userWithId]);
+    setUsers((previousUsers) => [...previousUsers, userWithId]);
+    recordActivity({
+      type: "created",
+      message: `User "${userWithId.name}" created`,
+      entityType: "user",
+      entityId: userWithId.id,
+    });
   }
 
   function updateUser(updatedUser) {
-    commitUsers(
-      users.map((user) =>
+    setUsers((previousUsers) =>
+      previousUsers.map((user) =>
         user.id === updatedUser.id ? { ...user, ...updatedUser } : user,
       ),
     );
+    recordActivity({
+      type: "updated",
+      message: `User "${updatedUser.name}" updated`,
+      entityType: "user",
+      entityId: updatedUser.id,
+    });
   }
 
   function deleteUser(id) {
-    commitUsers(users.filter((user) => user.id !== id));
+    const deletedUser = users.find((user) => user.id === id);
+
+    if (!deletedUser) {
+      return;
+    }
+
+    setUsers((previousUsers) =>
+      previousUsers.filter((user) => user.id !== id),
+    );
+    recordActivity({
+      type: "deleted",
+      message: `User "${deletedUser.name}" deleted`,
+      entityType: "user",
+      entityId: deletedUser.id,
+    });
   }
 
   function toggleFavorite(id) {
-    commitUsers(
-      users.map((user) =>
-        user.id === id ? { ...user, isFavorite: !user.isFavorite } : user,
+    const toggledUser = users.find((user) => user.id === id);
+
+    if (!toggledUser) {
+      return;
+    }
+
+    const isNowFavorite = !toggledUser.isFavorite;
+
+    setUsers((previousUsers) =>
+      previousUsers.map((user) =>
+        user.id === id ? { ...user, isFavorite: isNowFavorite } : user,
       ),
     );
+    recordActivity({
+      type: isNowFavorite ? "favorited" : "unfavorited",
+      message: `User "${toggledUser.name}" ${
+        isNowFavorite ? "favorited" : "unfavorited"
+      }`,
+      entityType: "user",
+      entityId: toggledUser.id,
+    });
+  }
+
+  async function resetUsers() {
+    setUsers(await getUsers());
   }
 
   return (
@@ -87,6 +133,7 @@ function UsersProvider({ children }) {
         updateUser,
         deleteUser,
         toggleFavorite,
+        resetUsers,
       }}
     >
       {children}

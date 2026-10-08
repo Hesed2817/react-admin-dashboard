@@ -1,0 +1,1797 @@
+/* ==========================================================================
+   COMPONENTS — shared, token-driven, no page-specific rules.
+
+   Every colour, radius, spacing and duration below resolves to a custom
+   property from tokens.css. There are no raw values in this file that could
+   drift from the design system.
+   ========================================================================== */
+
+/* ---------------------------------------------------------------------
+   UTILITY
+   --------------------------------------------------------------------- */
+
+/* Visually hidden but available to assistive technology. */
+.sr-only {
+  position: absolute;
+  width: var(--border-width);
+  height: var(--border-width);
+  padding: 0;
+  margin: calc(var(--border-width) * -1);
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------------------------------------------------------------------
+   BUTTONS — 8px radius. Heights 32 / 40 (default) / 44.
+   Three intents only: primary, secondary, destructive. Nothing decorative.
+   --------------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+
+  height: var(--control-height);
+  padding: 0 var(--space-4);
+
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  border: var(--border-width) solid var(--color-border-control);
+  border-radius: var(--radius-control);
+
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
+}
+
+.btn:hover {
+  background: var(--color-surface-muted);
+}
+
+.btn:active {
+  background: var(--color-surface-sunken);
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.btn:disabled:hover {
+  background: var(--color-surface);
+}
+
+/* Primary — the single accent action on a view. */
+.btn-primary {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-text-inverse);
+}
+
+.btn-primary:hover {
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+}
+
+.btn-primary:active {
+  background: var(--color-accent-active);
+  border-color: var(--color-accent-active);
+}
+
+.btn-primary:disabled:hover {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+/* Destructive — only for actions that destroy data. */
+.btn-danger {
+  background: var(--color-error);
+  border-color: var(--color-error);
+  color: var(--color-text-inverse);
+}
+
+.btn-danger:hover {
+  background: var(--color-error-hover);
+  border-color: var(--color-error-hover);
+}
+
+.btn-danger:active {
+  background: var(--color-error-hover);
+  border-color: var(--color-error-hover);
+}
+
+/* Quiet — for tertiary actions inside a dialog footer or a table row. */
+.btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--color-text-secondary);
+}
+
+.btn-ghost:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text-primary);
+}
+
+.btn-sm {
+  height: var(--control-height-sm);
+  padding: 0 var(--space-3);
+  font-size: var(--font-size-caption);
+}
+
+.btn-lg {
+  height: var(--control-height-lg);
+  padding: 0 var(--space-5);
+  font-size: var(--font-size-body);
+}
+
+/* Table row actions: compact, subordinate to the row label. */
+.btn-row-action {
+  height: var(--control-height-sm);
+  padding: 0 var(--space-2);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  border-color: transparent;
+  background: transparent;
+}
+
+.btn-row-action:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+}
+
+.btn-row-action--danger:hover {
+  background: var(--color-error-subtle);
+  color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+/* ---------------------------------------------------------------------
+   ICONS — one set, 16px, 1.5px stroke, always subordinate to its label.
+   Icons are decorative: every icon sits beside a real text label, so it is
+   marked aria-hidden at the call site and never carries meaning alone.
+   --------------------------------------------------------------------- */
+
+.icon {
+  width: var(--icon-size);
+  height: var(--icon-size);
+  flex: 0 0 auto;
+  stroke: currentColor;
+  stroke-width: var(--icon-stroke-width);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+/* ---------------------------------------------------------------------
+   FIELDS — 40px controls, 12px radius, 1px border, body font.
+   Every control has a real <label>; placeholder is never the only label.
+   --------------------------------------------------------------------- */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.field-label {
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-label);
+  color: var(--color-text-secondary);
+}
+
+.field-control {
+  width: 100%;
+  height: var(--control-height);
+  padding: 0 var(--space-3);
+
+  font-family: var(--font-body);
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border-control);
+  border-radius: var(--radius-control);
+
+  transition:
+    border-color var(--duration-fast) var(--ease-standard),
+    background-color var(--duration-fast) var(--ease-standard);
+}
+
+textarea.field-control {
+  height: auto;
+  min-height: var(--control-height-lg);
+  padding: var(--space-3);
+  line-height: var(--line-height-base);
+  resize: vertical;
+}
+
+select.field-control {
+  /* Room for the native chevron on the right. */
+  padding-right: var(--space-8);
+  cursor: pointer;
+  appearance: none;
+  background-image: none;
+}
+
+.field-control::placeholder {
+  color: var(--color-text-muted);
+}
+
+.field-control:hover {
+  border-color: var(--color-text-muted);
+}
+
+/* Accent focus border. The ring comes from the global :focus-visible rule in
+   base.css, so there is no glow. */
+.field-control:focus {
+  border-color: var(--color-accent);
+  outline: var(--focus-ring-width) solid var(--color-accent);
+  outline-offset: var(--focus-ring-offset);
+}
+
+.field-control[aria-invalid="true"] {
+  border-color: var(--color-error);
+}
+
+.field-control[aria-invalid="true"]:focus {
+  outline-color: var(--color-error);
+}
+
+.field-error {
+  margin: 0;
+  font-size: var(--font-size-caption);
+  color: var(--color-error);
+}
+
+.field-hint {
+  margin: 0;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+
+/* Checkbox rows — label and control stay in one clickable line. */
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  cursor: pointer;
+}
+
+.checkbox-field input {
+  width: var(--checkbox-size);
+  height: var(--checkbox-size);
+  flex: 0 0 auto;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+.checkbox-field span {
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+}
+
+/* Search box with a leading icon. */
+.search-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.search-field .icon {
+  position: absolute;
+  left: var(--space-3);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.search-field .field-control {
+  padding-left: calc(var(--space-3) * 2 + var(--icon-size) + var(--space-2));
+}
+
+/* ---------------------------------------------------------------------
+   FORMS
+   --------------------------------------------------------------------- */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.form-grid > .field--full {
+  grid-column: 1 / -1;
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-1);
+
+  /* Let a pair of side-by-side buttons stack rather than forcing the row
+     wider than a narrow phone. */
+  flex-wrap: wrap;
+}
+
+@media (max-width: 767px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   CARDS — 1px border, 20px radius, one soft shadow. The reference gives
+   cards a soft shadow, so this system does too — but it is confined to
+   cards. Rows, inputs, nav items and inline text get none.
+   --------------------------------------------------------------------- */
+
+.card {
+  padding: var(--space-card-padding);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+/* ---------------------------------------------------------------------
+   HERO — the single element allowed to use --gradient-hero.
+   White text is safe across the whole ramp: every stop is >= 4.88:1
+   against #ffffff. The hero is the one place display type gets to be big.
+   --------------------------------------------------------------------- */
+
+.hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-6);
+
+  padding: var(--space-6) var(--space-8);
+  margin-bottom: var(--space-6);
+  border-radius: var(--radius-card);
+
+  /* The banner's height is set here, not by whatever sits inside it. Without a
+     ceiling the illustration's intrinsic ratio wins: a 1892x1364 SVG scaled to
+     the banner's inner width renders 765.6px tall and drags `.hero` to
+     813.63px — 90% of a 900px viewport. `overflow: hidden` is the second half
+     of the guarantee, so even an uncapped child cannot paint past the banner's
+     own rounded edge. */
+  max-height: var(--hero-max-height);
+  overflow: hidden;
+
+  background: var(--gradient-hero);
+  box-shadow: var(--shadow-hero);
+  color: var(--color-text-inverse);
+}
+
+/* The media slot — the white card the artwork rests on.
+
+   `flex: 0 0 auto` is load-bearing and not cosmetic. As a flex item the raw
+   <img> had an automatic minimum size equal to its own intrinsic width, so it
+   could not shrink below 1892px and it starved `.hero__content` to 0px. This
+   slot takes a definite box on both axes and refuses to negotiate, so the text
+   column's width is a function of the artwork's cap rather than of the
+   artwork's pixel dimensions. */
+.hero__media {
+  flex: 0 0 auto;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: var(--illustration-hero-card-width);
+  height: var(--illustration-hero-card-height);
+  /* The invariant the banner depends on, enforced by the cascade rather than
+     asserted in a comment: the card plus the banner's own block padding can
+     never exceed the banner's ceiling, so no artwork height can grow the
+     banner. Today 208 + 24 + 24 = 256 against a 272px ceiling. */
+  max-height: calc(var(--hero-max-height) - 2 * var(--space-6));
+  padding: var(--illustration-hero-card-padding);
+
+  background: var(--color-surface);
+  border-radius: var(--radius-control);
+  box-shadow: var(--shadow-hero-art);
+  overflow: hidden;
+}
+
+/* `object-fit: contain` with both dimensions at 100% is what "scales down
+   proportionally rather than cropping" actually requires: `max-height` alone
+   leaves the element's box at its intrinsic size and does nothing. The
+   artwork here is 1.387:1 and the card's content box is 1.217:1, so `contain`
+   letterboxes it horizontally instead of cropping the edges. */
+.hero__media .illustration {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.hero__content {
+  /* `width: 100%` is the fix for the shrink-to-fit collapse and it has to be
+     here, not only in the ≤767px block. Beside an illustration this column is
+     a flex item whose automatic minimum is its max-content width, so an
+     oversized sibling squeezes it to 0px and every word drops onto its own
+     line. `min-width: 0` lets it give way, `width: 100%` is the preferred size,
+     and `flex: 1 1 auto` lets it absorb what the capped artwork leaves over. */
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+}
+
+.hero__title {
+  margin: 0 0 var(--space-1);
+  font-family: var(--font-heading);
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-heading);
+  color: var(--color-text-inverse);
+}
+
+.hero__message {
+  margin: 0;
+  max-width: var(--measure-text);
+  font-size: var(--font-size-body);
+  color: var(--color-text-inverse);
+  opacity: 0.92;
+}
+
+/* The hero's one call to action. It is a WHITE button on the gradient, not a
+   purple one — the banner is already the accent, and a second purple fill
+   stacked on it is exactly the "purple everywhere" failure. */
+.btn-hero {
+  margin-top: var(--space-4);
+  background: var(--color-surface);
+  color: var(--color-accent);
+  border-color: var(--color-surface);
+}
+
+.btn-hero:hover {
+  background: var(--color-surface-muted);
+  border-color: var(--color-surface-muted);
+  color: var(--color-accent-hover);
+}
+
+.btn-hero:active {
+  background: var(--color-surface-sunken);
+  border-color: var(--color-surface-sunken);
+  color: var(--color-accent-active);
+}
+
+/* When the banner is too narrow to carry both the copy and the artwork, it
+   carries the copy.
+
+   The artwork costs the banner 248px of card + 24px of gap + 64px of the
+   banner's own padding = 336px, and that comes straight out of the text
+   column. Measured with the card in place: at 768px the column fell to 174px
+   and the heading broke to three lines — the shrink-to-fit symptom again, just
+   less extremely than the 0px it used to collapse to. Above 1024px the column
+   is never narrower than 430px, which keeps the heading on one line.
+
+   So the breakpoint is where the copy stops fitting, not the phone breakpoint,
+   and it is deliberately a compound selector: it outranks `.hero__media`
+   without depending on where that rule is declared in this file. */
+@media (max-width: 1023px) {
+  .hero .hero__media {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .hero {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: var(--space-5);
+  }
+
+  /* Stacked, the text and the media are no longer side by side, so the text
+     column no longer has a max measure to respect: it should take the full
+     width of the hero. Left unset it is shrink-to-fit (align-items:
+     flex-start above), so it collapses to the greeting's max-content width
+     and leaves the rest of the banner empty. Same fix as
+     .stat-highlight__media below.
+
+     This now also holds in the base rule, so it is restated rather than
+     needed — kept explicit at the breakpoint because it is the one that was
+     originally diagnosed, and a reader checking the mobile fix should find it
+     here. */
+  .hero__content {
+    width: 100%;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   PLACEHOLDER MEDIA — for the slots the redesign wants filled with an
+   illustration, photo or avatar that this app does not have yet.
+
+   It is deliberately a dashed "empty frame" rather than a broken image:
+   a dashed border with a muted silhouette reads as "put something here"
+   at a glance, in greyscale, and in a screenshot. Every instance carries a
+   real accessible name, so assistive tech announces what is missing rather
+   than a filename or nothing at all.
+
+   Colours are existing tokens: accent-tinted surface and border, muted
+   glyph. No new colour concept was introduced for this.
+   --------------------------------------------------------------------- */
+
+.media-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+
+  min-height: var(--media-placeholder-min-height);
+  padding: var(--space-4);
+
+  background: var(--color-accent-subtle);
+  border: var(--border-width) dashed var(--color-accent-border);
+  border-radius: var(--radius-card);
+  color: var(--color-text-secondary);
+  text-align: center;
+}
+
+.media-placeholder__glyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: var(--icon-size-nav);
+  height: var(--icon-size-nav);
+  color: var(--color-accent);
+}
+
+.media-placeholder__label {
+  margin: 0;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+
+/* Circular variant, for avatar slots in a list. */
+.media-placeholder--avatar {
+  flex: 0 0 auto;
+  width: var(--media-placeholder-avatar-size);
+  min-height: var(--media-placeholder-avatar-size);
+  height: var(--media-placeholder-avatar-size);
+  padding: 0;
+  border-radius: var(--radius-pill);
+}
+
+/* Inline variant, for a media slot that sits inside a row or a stat tile. */
+.media-placeholder--inline {
+  flex-direction: row;
+  gap: var(--space-2);
+  min-height: 0;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control);
+}
+
+
+/* Avatar image inside placeholders — preserves the existing size/shape token */
+.media-placeholder--avatar .media-placeholder__avatar,
+.media-placeholder--inline .media-placeholder__avatar {
+  width: var(--media-placeholder-avatar-size);
+  height: var(--media-placeholder-avatar-size);
+  border-radius: 50%;
+  display: block;
+}
+/* ---------------------------------------------------------------------
+   REAL ILLUSTRATION — a media slot that has an asset, the filled-in
+   counterpart to the placeholders above.
+
+   Sized entirely by the <img>'s own intrinsic ratio, never by a CSS height, so
+   a wider or taller artwork can be dropped into any slot without distorting it.
+   `max-width: 100%` is what keeps it inside its card when the viewport gets
+   narrow; the intrinsic width/height attributes on the element are what let
+   the browser reserve the box before the SVG has downloaded.
+   --------------------------------------------------------------------- */
+
+.illustration {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* ---------------------------------------------------------------------
+   DASHBOARD LAYOUT — the three arrangements the dashboard needs. All three
+   collapse to one column; none of them introduces a second accent.
+   --------------------------------------------------------------------- */
+
+/* The single large number, beside the quick-action list. */
+.dashboard-top {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+/* Analytics card on the left, the people list on the right. */
+.dashboard-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+  margin-bottom: var(--space-6);
+}
+
+@media (max-width: 1199px) {
+  .dashboard-top,
+  .dashboard-columns {
+    /* minmax(0, 1fr), not 1fr: a bare `1fr` is minmax(auto, 1fr), and the
+       auto minimum resolves to the track's min-content. The analytics card
+       contains a data table whose min-content width exceeds a narrow phone,
+       so the single column refused to shrink and pushed the whole document
+       sideways (~52px of overflow at 320px). minmax(0, ...) lets the column
+       shrink and the existing .table-scroll scrollbar take the overflow. */
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.stat-highlight {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+
+  /* Decorative background blobs: low-opacity, behind content, clipped to
+     rounded corners, and non-interactive. The blobs never compromise layout
+     or clickability, and are a token-only treatment. */
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.stat-highlight__blobs {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+  opacity: 0.18;
+  z-index: 0;
+  transform: translateZ(0);
+}
+
+.stat-highlight__text {
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.stat-highlight__value {
+  margin: var(--space-1) 0 0;
+  font-size: calc(var(--font-size-metric) * 1.25);
+}
+
+.stat-highlight__description {
+  margin: var(--space-2) 0 0;
+  font-size: var(--font-size-body);
+  color: var(--color-text-secondary);
+}
+
+.stat-highlight__media {
+  flex: 0 0 auto;
+  width: var(--media-placeholder-inline-width);
+  min-width: 0;
+}
+
+@media (max-width: 767px) {
+  .stat-highlight {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+
+  .stat-highlight__illustration {
+    width: clamp(80px, 18vw, 160px);
+    height: auto;
+  }
+  .stat-highlight__media {
+    width: 100%;
+  }
+
+  /* Same shrink-to-fit fix as .hero__content: stacking drops the side-by-side
+     measure that made this column naturally narrow. */
+  .stat-highlight__text {
+    width: 100%;
+  }
+}
+
+/* ---- Quick actions -------------------------------------------------- */
+
+.quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.quick-actions__title,
+.recent-list__title {
+  margin: 0;
+  font-size: var(--font-size-h3);
+}
+
+.quick-actions__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.quick-action {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-control);
+
+  color: var(--color-text-primary);
+  text-decoration: none;
+}
+
+.quick-action:hover {
+  background: var(--color-surface-muted);
+  text-decoration: none;
+}
+
+.quick-action__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  color: var(--color-accent);
+}
+
+.quick-action__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.quick-action__label {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.quick-action__description {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+
+/* ---- Recent people list --------------------------------------------- */
+
+.recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.recent-list__items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.recent-list__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.recent-list__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.recent-list__name {
+  font-size: var(--font-size-body);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recent-list__meta {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+
+/* ---- Analytics card ------------------------------------------------- */
+
+.analytics {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.analytics__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.analytics__header h2 {
+  margin: 0;
+  font-size: var(--font-size-h2);
+}
+
+.analytics h3 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-h3);
+}
+
+/* ---------------------------------------------------------------------
+   FILTER PILLS — the reference's rounded option chips.
+
+   The selected pill is marked three ways: a filled accent background, a
+   heavier weight, and aria-pressed. Colour is never the only signal.
+   --------------------------------------------------------------------- */
+
+.pill-group {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding: var(--space-1);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-muted);
+}
+
+.pill {
+  height: var(--control-height-sm);
+  padding: 0 var(--space-4);
+
+  font-family: var(--font-body);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  white-space: nowrap;
+
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+
+  transition:
+    background-color var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
+}
+
+.pill:hover {
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+}
+
+.pill--active {
+  background: var(--color-accent);
+  color: var(--color-text-inverse);
+  font-weight: var(--font-weight-semibold);
+}
+
+.pill--active:hover {
+  background: var(--color-accent-hover);
+  color: var(--color-text-inverse);
+}
+
+/* ---------------------------------------------------------------------
+   STAT CARDS — compact. The display face is used for the metric only.
+   --------------------------------------------------------------------- */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+}
+
+@media (max-width: 1199px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+}
+
+.stat-card {
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.stat-card__label {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--letter-spacing-label);
+  color: var(--color-text-secondary);
+}
+
+/* The metric. Display face, large, bold — the one place display type is
+   used outside a heading. */
+.stat-card__value {
+  margin: var(--space-1) 0 0;
+  font-family: var(--font-heading);
+  font-size: var(--font-size-metric-sm);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-tight);
+  letter-spacing: var(--letter-spacing-heading);
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-card__description {
+  margin: var(--space-1) 0 0;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+}
+
+/* ---------------------------------------------------------------------
+   STATUS BADGES — colour plus text, never colour alone.
+   All four states have a distinct hue and all four render their label.
+   --------------------------------------------------------------------- */
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-snug);
+  white-space: nowrap;
+}
+
+/* A filled dot gives a second, non-textual shape cue. */
+.status-badge::before {
+  content: "";
+  width: var(--status-dot-size);
+  height: var(--status-dot-size);
+  flex: 0 0 auto;
+  border-radius: var(--radius-pill);
+  background: currentColor;
+}
+
+.status-badge--active {
+  background: var(--color-status-active-bg);
+  color: var(--color-status-active);
+}
+
+.status-badge--discharged {
+  background: var(--color-status-discharged-bg);
+  color: var(--color-status-discharged);
+}
+
+.status-badge--pending {
+  background: var(--color-status-pending-bg);
+  color: var(--color-status-pending);
+}
+
+.status-badge--inactive {
+  background: var(--color-status-inactive-bg);
+  color: var(--color-status-inactive);
+}
+
+/* ---------------------------------------------------------------------
+   TABLES — header 44px, rows 52px, cell padding 12/16px.
+   Subtle row separators, restrained hover, no boxed rows.
+   Wide tables scroll horizontally rather than being squeezed.
+   --------------------------------------------------------------------- */
+
+.table-scroll {
+  position: relative;
+  width: 100%;
+  overflow-x: auto;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-table);
+}
+
+.data-table caption {
+  padding: var(--space-3) var(--table-cell-padding-x);
+  text-align: left;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.data-table thead th {
+  height: var(--table-header-height);
+  padding: var(--table-cell-padding-y) var(--table-cell-padding-x);
+  text-align: left;
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-label);
+  color: var(--color-text-secondary);
+  background: var(--color-surface-muted);
+  border-bottom: var(--border-width) solid var(--color-border);
+  white-space: nowrap;
+}
+
+.data-table tbody td {
+  height: var(--table-row-height);
+  padding: var(--table-cell-padding-y) var(--table-cell-padding-x);
+  border-bottom: var(--border-width) solid var(--color-border);
+  color: var(--color-text-primary);
+  vertical-align: middle;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* Restrained hover: a surface change only, no lift, no shadow. */
+.data-table tbody tr:hover td {
+  background: var(--color-surface-muted);
+}
+
+.data-table .cell-numeric {
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table .cell-muted {
+  color: var(--color-text-secondary);
+}
+
+.table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+/* ---- Row action menu -------------------------------------------------
+   Rendered only on compact viewports (see useIsCompactViewport), so nothing
+   here can affect desktop. Additive: .table-actions still owns desktop. */
+.row-actions-menu {
+  position: relative;
+  display: inline-flex;
+}
+
+/* One 44px target. The row menu replaces four 34px buttons, so the single
+   control that replaces them has to meet the touch size the design system
+   already reserves for mobile: --control-height-lg. */
+.row-actions-menu__trigger {
+  width: var(--control-height-lg);
+  height: var(--control-height-lg);
+  padding: 0;
+  color: var(--color-text-secondary);
+}
+
+.row-actions-menu__trigger:hover {
+  color: var(--color-text-primary);
+  background: var(--color-surface-muted);
+  border-color: var(--color-border);
+}
+
+.row-actions-menu__list {
+  position: absolute;
+  top: calc(100% + var(--space-1));
+  right: 0;
+  /* Below the drawer (900) and the dialog (1000), so a row menu can never
+     paint over either. The table rows themselves are not positioned, so this
+     only has to beat the flow content beneath it. */
+  z-index: var(--z-menu);
+  min-width: 10rem;
+  margin: 0;
+  padding: var(--space-1);
+  list-style: none;
+  text-align: left;
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-control);
+  box-shadow: var(--shadow-card);
+}
+
+.row-actions-menu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: var(--control-height);
+  padding: 0 var(--space-3);
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+
+.row-actions-menu__item:hover,
+.row-actions-menu__item:focus-visible {
+  background: var(--color-surface-muted);
+}
+
+/* The desktop danger buttons are only tinted on hover. A menu item spends most
+   of its life not hovered, so the danger colour has to be in the resting
+   state or "Delete" reads as an ordinary action. */
+.row-actions-menu__item--danger {
+  color: var(--color-error);
+}
+
+.row-actions-menu__item--danger:hover,
+.row-actions-menu__item--danger:focus-visible {
+  color: var(--color-error);
+  background: var(--color-error-subtle);
+}
+
+/* Sortable header control. aria-sort lives on the <th>. */
+.th-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0;
+  font: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.th-sort:hover {
+  color: var(--color-text-primary);
+}
+
+.th-sort .icon {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
+  color: var(--color-text-muted);
+}
+
+th[aria-sort="ascending"] .th-sort .icon,
+th[aria-sort="descending"] .th-sort .icon {
+  color: var(--color-accent);
+}
+
+/* ---- Stacked layout below 768px -------------------------------------
+   Each record becomes a label/value list. The row keeps a single bottom
+   rule, so this is still one list, not a stack of boxed cards.
+   ------------------------------------------------------------------- */
+
+@media (max-width: 767px) {
+  .data-table--stack thead {
+    position: absolute;
+    width: var(--border-width);
+    height: var(--border-width);
+    padding: 0;
+    margin: calc(var(--border-width) * -1);
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .data-table--stack,
+  .data-table--stack tbody,
+  .data-table--stack tr,
+  .data-table--stack td {
+    display: block;
+    width: 100%;
+  }
+
+  .data-table--stack tr {
+    border-bottom: var(--border-width) solid var(--color-border);
+  }
+
+  .data-table--stack tr:last-child {
+    border-bottom: 0;
+  }
+
+  .data-table--stack td {
+    display: grid;
+    grid-template-columns: minmax(5rem, 40%) 1fr;
+    align-items: baseline;
+    gap: var(--space-3);
+    height: auto;
+    padding: var(--space-2) var(--space-4);
+    border-bottom: 0;
+  }
+
+  .data-table--stack td::before {
+    content: attr(data-label);
+    font-size: var(--font-size-caption);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--letter-spacing-label);
+    color: var(--color-text-secondary);
+  }
+
+  .data-table--stack tr:hover td {
+    background: transparent;
+  }
+}
+
+/* ---- Pagination ------------------------------------------------------ */
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.pagination__status {
+  font-size: var(--font-size-caption);
+  color: var(--color-text-secondary);
+}
+
+.pagination__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pagination__page-size {
+  width: auto;
+  height: var(--control-height-sm);
+  padding-right: var(--space-6);
+  font-size: var(--font-size-caption);
+}
+
+@media (max-width: 767px) {
+  .pagination {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .pagination__controls {
+    justify-content: center;
+  }
+}
+
+/* ---- Breakdown bar (decorative; the Share column is the real number) -- */
+
+.breakdown-bar {
+  display: block;
+  width: 100%;
+  min-width: var(--bar-width-min);
+  max-width: var(--bar-width-max);
+  height: var(--bar-height);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-sunken);
+  overflow: hidden;
+}
+
+.breakdown-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+}
+
+/* ---------------------------------------------------------------------
+   ACTIVITY LIST — a clean list, not a table of bullets.
+   --------------------------------------------------------------------- */
+
+.activity-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: var(--border-width) solid var(--color-border);
+}
+
+.activity-list__item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.activity-list__message {
+  min-width: 0;
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+}
+
+.activity-list__time {
+  flex: 0 0 auto;
+  font-size: var(--font-size-caption);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+@media (max-width: 767px) {
+  .activity-list__item {
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+}
+
+/* ---------------------------------------------------------------------
+   DETAIL PANEL — the body of the "view" dialog.
+
+   It is deliberately chrome-free: the <Modal> around it is already the card
+   (20px radius, hairline border, deep shadow). Giving the content a second
+   card inside the dialog is what made the old inline version read as a
+   separate surface, so all that is left here is the record itself.
+   ------------------------------------------------------------------- */
+
+.detail-panel__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.detail-panel__header h3 {
+  margin: 0;
+  font-size: var(--font-size-h3);
+}
+
+/* Functional identifier, not decoration: initials from the record's name. */
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-height);
+  height: var(--control-height);
+  flex: 0 0 auto;
+
+  font-family: var(--font-body);
+  font-size: var(--font-size-caption);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+
+  color: var(--color-text-primary);
+  background: var(--color-surface-sunken);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-pill);
+}
+
+.detail-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4) var(--space-6);
+  margin: 0;
+}
+
+.detail-list div {
+  min-width: 0;
+}
+
+.detail-list dt {
+  margin: 0 0 var(--space-1);
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-label);
+  color: var(--color-text-secondary);
+}
+
+.detail-list dd {
+  margin: 0;
+  font-size: var(--font-size-body);
+  color: var(--color-text-primary);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 767px) {
+  .detail-list {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+
+  /* Same shrink-to-fit issue: column + align-items:flex-start causes children
+     to size to intrinsic width. Stretching lets children fill the card width
+     while still honoring max-width constraints (e.g. .empty-state__message).
+     Compound selector: the base .empty-state rule sits later in this file at
+     equal specificity and would otherwise win. */
+  .empty-state.empty-state {
+    align-items: stretch;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   EMPTY STATES — a muted glyph, never an accent one. The title carries the
+   meaning; the icon is a subordinate status cue.
+   --------------------------------------------------------------------- */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  padding: var(--space-8) var(--space-5);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+.empty-state__icon {
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-1);
+}
+
+.empty-state__title {
+  font-family: var(--font-heading);
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+}
+
+.empty-state__message {
+  margin: 0;
+  max-width: var(--measure-text);
+  font-size: var(--font-size-body);
+  color: var(--color-text-secondary);
+}
+
+/* ---------------------------------------------------------------------
+   INLINE MESSAGE — save confirmations and errors.
+   --------------------------------------------------------------------- */
+
+.inline-message {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-bottom: var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-width) solid var(--color-accent-border);
+  border-left-width: var(--notice-accent-width);
+  border-radius: var(--radius-control);
+  background: var(--color-accent-subtle);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-body);
+}
+
+.inline-message--error {
+  border-color: var(--color-error);
+  background: var(--color-error-subtle);
+  color: var(--color-error);
+}
+
+/* ---------------------------------------------------------------------
+   MODAL — 20px radius, 1px border, deep shadow, calm backdrop.
+   --------------------------------------------------------------------- */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-dialog);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-5);
+
+  background: var(--color-backdrop);
+  animation: overlay-in var(--duration-base) var(--ease-standard) both;
+}
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+
+  width: min(var(--modal-width), 100%);
+  max-height: calc(100vh - var(--space-10));
+  padding: var(--space-6);
+
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-dialog);
+  box-shadow: var(--shadow-dialog);
+
+  animation: dialog-in var(--duration-base) var(--ease-standard) both;
+}
+
+.modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.modal__title {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+}
+
+.modal__body {
+  font-size: var(--font-size-body);
+  color: var(--color-text-secondary);
+  overflow-y: auto;
+}
+
+.modal__body > :first-child {
+  margin-top: 0;
+}
+
+.modal__body > :last-child {
+  margin-bottom: 0;
+}
+
+.modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding-top: var(--space-1);
+}
+
+.modal__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--control-height-sm);
+  height: var(--control-height-sm);
+  flex: 0 0 auto;
+  padding: 0;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: var(--border-width) solid transparent;
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+
+.modal__close:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text-primary);
+  border-color: var(--color-border);
+}
+
+@media (max-width: 767px) {
+  .modal {
+    padding: var(--space-5);
+    max-height: calc(100vh - var(--space-8));
+  }
+
+  .modal__footer {
+    flex-direction: column-reverse;
+  }
+
+  .modal__footer .btn {
+    width: 100%;
+  }
+}
+
+/* ---------------------------------------------------------------------
+   PAGE LAYOUT
+   --------------------------------------------------------------------- */
+
+.page {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.page-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+}
+
+.page-header h1 {
+  margin: 0;
+}
+
+.page-header__description {
+  margin: 0;
+  font-size: var(--font-size-body);
+  color: var(--color-text-secondary);
+}
+
+/* Toolbar under the page title: filters, search, primary action.
+   align-items: flex-end so every control sits on one baseline underneath
+   its own visible label. */
+.page-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.page-actions .search-field {
+  flex: 1 1 220px;
+}
+
+/* The primary action sits last and keeps its own space. */
+.page-actions__primary {
+  margin-left: auto;
+}
+
+.section {
+  margin-bottom: var(--space-section-gap);
+}
+
+.section__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.section__header h2 {
+  margin: 0;
+  font-size: var(--font-size-h2);
+}
+
+.section__header .field {
+  margin-left: auto;
+  min-width: var(--bar-width-max);
+}
+
+.section__footer {
+  margin: var(--space-4) 0 0;
+  font-size: var(--font-size-body);
+}
+
+@media (max-width: 767px) {
+  .page-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-actions__primary {
+    margin-left: 0;
+  }
+
+  .page-actions .btn {
+    width: 100%;
+    height: var(--control-height-lg);
+  }
+
+  .section__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .section__header .field {
+    margin-left: 0;
+  }
+}
+/* Two-column content on desktop, single column on mobile. */
+.split-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+
+@media (max-width: 1199px) {
+  .split-layout {
+    /* minmax(0, 1fr), not 1fr — see the note on .dashboard-columns. A bare
+       `1fr` floors the track at min-content, so a wide table in either column
+       pushed the document sideways instead of scrolling inside .table-scroll. */
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------------------------------------------------------------------
+   MOTION — one enter transition per view, one per dialog. No bouncing, no
+   per-card entrances, no background motion. Everything is neutralised by the
+   global prefers-reduced-motion rule in base.css.
+   --------------------------------------------------------------------- */
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.99);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes loading-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.45;
+  }
+}
+
+.page {
+  animation: page-in var(--duration-base) var(--ease-standard) both;
+}
+
+/* Loading placeholders. A quiet opacity pulse, nothing that moves. */
+.loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-body);
+  animation: loading-pulse 1.4s var(--ease-standard) infinite;
+}
+
+.loading__bar {
+  height: var(--space-1);
+  border-radius: var(--radius-pill);
+  background: var(--color-border);
+}

@@ -1,31 +1,16 @@
 import { useState } from "react";
-import { isValidEmail } from "../utils/validation";
+import { Button } from "./Button";
+import { Field } from "./Field";
+import { validateUser } from "../utils/users";
+import { useUsers } from "../hooks/useUsers";
+import { STATUS_ACTIVE } from "../constants/statuses";
 
 function AddUserForm({ onAddUser }) {
+  const { users } = useUsers();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState("");
   const [errors, setErrors] = useState({});
-
-  function validate(values) {
-    const nextErrors = {};
-
-    if (!values.name) {
-      nextErrors.name = "Name is required";
-    }
-
-    if (!values.email) {
-      nextErrors.email = "Email is required";
-    } else if (!isValidEmail(values.email)) {
-      nextErrors.email = "Enter a valid email address";
-    }
-
-    if (!values.role) {
-      nextErrors.role = "Role is required";
-    }
-
-    return nextErrors;
-  }
 
   function handleChange(setValue, field) {
     return (event) => {
@@ -43,45 +28,60 @@ function AddUserForm({ onAddUser }) {
       role: role.trim(),
     };
 
-    const nextErrors = validate(values);
+    const nextErrors = validateUser(values, { users });
 
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
       return;
     }
 
-    onAddUser({ ...values, status: "Active" });
+    onAddUser({ ...values, status: STATUS_ACTIVE });
   };
 
   return (
-    <form onSubmit={handleSubmit} noValidate>
-      <input
-        type="text"
-        placeholder="Name"
-        value={name}
-        onChange={handleChange(setName, "name")}
-      />
-      {errors.name && <p>{errors.name}</p>}
+    <form className="form" onSubmit={handleSubmit} noValidate>
+      <Field label="Name" error={errors.name}>
+        {(controlProps) => (
+          <input
+            type="text"
+            className="field-control"
+            value={name}
+            onChange={handleChange(setName, "name")}
+            {...controlProps}
+          />
+        )}
+      </Field>
 
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={handleChange(setEmail, "email")}
-      />
-      {errors.email && <p>{errors.email}</p>}
+      <Field label="Email" error={errors.email}>
+        {(controlProps) => (
+          <input
+            type="email"
+            className="field-control"
+            value={email}
+            onChange={handleChange(setEmail, "email")}
+            {...controlProps}
+          />
+        )}
+      </Field>
 
-      <input
-        type="text"
-        placeholder="Role"
-        value={role}
-        onChange={handleChange(setRole, "role")}
-      />
-      {errors.role && <p>{errors.role}</p>}
+      <Field label="Role" error={errors.role}>
+        {(controlProps) => (
+          <input
+            type="text"
+            className="field-control"
+            placeholder="e.g. Administrator, Receptionist"
+            value={role}
+            onChange={handleChange(setRole, "role")}
+            {...controlProps}
+          />
+        )}
+      </Field>
 
-      <button type="submit">
-        Add User
-      </button>
+      <div className="form-actions">
+        <Button type="submit" variant="primary">
+          Add User
+        </Button>
+      </div>
     </form>
   );
 }

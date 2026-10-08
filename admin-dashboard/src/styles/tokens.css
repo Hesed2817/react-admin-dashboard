@@ -1,0 +1,384 @@
+/* ==========================================================================
+   LIBRARY DECISIONS (permanent)
+
+   The component layer is hand-built and token-driven. It is NOT a UI library.
+   Nothing here configures, bridges or prepares for an external component
+   library, and none is installed. Introducing one later would be a new
+   decision, not a continuation of this file.
+
+   ONE documented exception: @fortawesome/fontawesome-free is a webfont/CSS
+   asset package, not a component library. It is used for the sidebar
+   navigation icons only. It ships no React components and nothing in the app
+   imports one. See PROJECT_NOTES.md, "Redesign: purple/white theme".
+
+   Every visual value in the app resolves to a custom property declared below.
+   ========================================================================== */
+
+/* ==========================================================================
+   DESIGN TOKENS — the single source of truth for the visual system.
+   LOCKED system. Every value below is intentional; do not freestyle these.
+
+   Aesthetic: light, airy, generous. Near-white surfaces, ONE purple accent
+   used sparingly, soft rounding, restrained shadows on cards and the hero
+   only. The interface must read as predominantly white/neutral — if purple
+   is the first thing you notice, the accent has been overused.
+   ========================================================================== */
+
+:root {
+  /* ---------------------------------------------------------------------
+     COLOUR
+
+     Accent provenance: #5438ff is SAMPLED from the reference dashboard's
+     solid accent fills (primary buttons / active states), not invented.
+     The reference's own light-mode values were #5438ff, #5339ff and
+     #5236fc across four separate accent tiles; #5438ff was the modal value.
+
+     Everything else is derived from it. Semantic success/warning/error are
+     deliberately hue-separated from the purple: green, amber and red sit
+     nowhere near 250deg, and the four record states are additionally
+     separated by label text, never by colour alone.
+     --------------------------------------------------------------------- */
+
+  /* Surfaces. The page is a very light gray-lavender; cards sit on it white. */
+  --color-bg: #f4f2fd;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f8f6ff;
+  --color-surface-sunken: #eae6fb;
+
+  /* Borders are lavender-tinted so they sit in the same family as the page. */
+  --color-border: #e6e1f5;
+  --color-border-strong: #cfc7e8;
+  /* Boundaries of interactive controls need >= 3:1 (WCAG 1.4.11), which
+     --color-border-strong does not reach. Use this for input/button edges.
+     Decorative dividers can use --color-border-strong. */
+  --color-border-control: #8b83a8;
+
+  --color-text-primary: #171233;    /* 17.9:1 on --color-surface */
+  --color-text-secondary: #4b4468;  /*  9.0:1 on --color-surface */
+  --color-text-muted: #645c85;      /*  6.2:1 on --color-surface */
+  --color-text-inverse: #ffffff;
+
+  /* The single accent. 6.20:1 on white, so it is legal as text AND as a
+     button fill behind white text. It is not a text colour by default. */
+  --color-accent: #5438ff;
+  --color-accent-hover: #4526ea;
+  --color-accent-active: #3717cc;
+  --color-accent-subtle: #efecff;   /* 5.35:1 with --color-accent on it */
+  --color-accent-border: #c9bdff;
+
+  /* Semantic — restrained, used for state only. None of these is the accent,
+     and none of them is the sole indicator of anything. */
+  --color-success: #0b7a4b;
+  --color-success-subtle: #e4f5ec;
+  --color-warning: #8a5300;
+  --color-warning-subtle: #fdf2e0;
+  --color-error: #b32318;
+  --color-error-subtle: #fdecea;
+  --color-error-hover: #8e1c13;
+
+  /* Scrim behind the dialog and the mobile drawer. Kept as a token because it
+     is the one translucent value in the system. */
+  --color-backdrop: rgba(23, 18, 51, 0.45);
+
+  /* ---------------------------------------------------------------------
+     GRADIENT — exactly one element in the app uses this: the hero/welcome
+     banner. It is not a button gradient, not a card gradient, and not a
+     background for a whole page. Do not reuse it "for consistency".
+
+     SAMPLED from the reference hero, which runs #5337fe -> #968df9. That
+     reference ramp is compressed here: its light end only reaches 2.5:1
+     against white text, which is far below AA. Every stop below is >= 4.88:1
+     against white, so hero copy is legible wherever it lands on the ramp.
+     --------------------------------------------------------------------- */
+  --gradient-hero: linear-gradient(
+    104deg,
+    #3a1aee 0%,
+    #5438ff 42%,
+    #6d55f8 100%
+  );
+
+  /* ---------------------------------------------------------------------
+     TYPOGRAPHY
+     The heading face is NOT applied globally. It is scoped to headings,
+     metrics and the hero title; body copy is always --font-body.
+
+     Bricolage Grotesque — heading/display. Only 600 and 700 are requested,
+                      because those are the only two weights any display-face
+                      rule actually applies (h1..h6 are --font-weight-semibold
+                      with h1 at bold; .metric and .hero__title are bold).
+                      Requesting a third weight would ship a font file nothing
+                      can select. OFL 1.1.
+     Roboto         — body/UI. SUBSTITUTION, see PROJECT_NOTES.md: the owner
+                      asked for "Google Sans", which is proprietary and not
+                      distributable on the web. Roboto is Google's own open
+                      font and the same neo-grotesque lineage, so it is the
+                      closest licensed stand-in. Pending owner confirmation.
+     --------------------------------------------------------------------- */
+  --font-heading: "Bricolage Grotesque", "Google Sans", system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+  --font-body: "Google Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --font-size-h1: 32px;
+  --font-size-h2: 24px;
+  --font-size-h3: 18px;
+  --font-size-metric: 40px;
+  --font-size-metric-sm: 36px;
+
+  --font-size-body: 14px;
+  --font-size-nav: 14px;
+  --font-size-table: 14px;
+  --font-size-caption: 12px;
+  --font-size-label: 12px;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --line-height-tight: 1.2;
+  --line-height-snug: 1.35;
+  --line-height-base: 1.5;
+
+  --letter-spacing-heading: -0.02em;
+  --letter-spacing-label: 0.04em;
+
+  /* ---------------------------------------------------------------------
+     RADIUS — generous. The reference rounds cards hard and uses fully
+     rounded pills; both are adopted. Form controls stay rectangular enough
+     to keep input edges and table cells aligned.
+     --------------------------------------------------------------------- */
+  --radius-control: 12px;  /* inputs, buttons */
+  --radius-card: 20px;     /* cards, tables, panels */
+  --radius-dialog: 20px;   /* dialogs */
+  --radius-pill: 999px;    /* badges, avatars, pills */
+
+  /* ---------------------------------------------------------------------
+     BORDERS & ELEVATION
+     Borders establish structure and remain the default. Shadows are for real
+     elevation and are deliberately confined to cards and the hero — never to
+     inputs, rows, nav items, or every element at once.
+     --------------------------------------------------------------------- */
+  --border-width: 1px;
+
+  --shadow-card: 0 1px 2px rgba(23, 18, 51, 0.04),
+    0 6px 20px rgba(23, 18, 51, 0.06);
+  --shadow-hero: 0 12px 32px rgba(84, 56, 255, 0.18);
+  --shadow-dialog: 0 24px 60px rgba(23, 18, 51, 0.18);
+  /* The white illustration card that sits ON the hero gradient. It needs its
+     own shadow because --shadow-card is tuned for a white card on a near-white
+     page: at 0.06 alpha it disappears against the banner, and the card then
+     reads as a hole cut in the gradient rather than a card resting on it. */
+  --shadow-hero-art: 0 10px 24px rgba(23, 18, 51, 0.24);
+
+  /* ---------------------------------------------------------------------
+     SPACING — 4px grid. Favour 8 / 12 / 16 / 24 / 32.
+     --------------------------------------------------------------------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+
+  --space-card-padding: var(--space-5);
+  --space-section-gap: var(--space-8);
+
+  /* ---------------------------------------------------------------------
+     COLLAPSED SIDEBAR RAIL — a LIGHT, near-white icon rail, in the same
+     white/purple family as every other surface in the system. It is one step
+     off --color-surface (--color-surface-muted) so the rail still reads as a
+     distinct object, and it takes the same hairline and the same card shadow
+     as the expanded panel, because it is no longer a special surface.
+
+     The rail's own contrast is measured against ITSELF, not inherited: these
+     are the same values as the light palette's, restated so the rail can be
+     re-tinted without hunting through shell.css.
+
+     THE ACTIVE BLOCK IS THE ONE REAL DIVERGENCE, and it is forced by
+     measurement rather than taste. The expanded sidebar marks the active row
+     with --color-accent-subtle under --color-text-primary, and that pairing
+     cannot be reused here: --color-accent-subtle on this rail is 1.08:1, so a
+     soft lavender block would carry no state boundary at all against a
+     near-white surface (WCAG 1.4.11 wants 3:1 of a boundary that identifies a
+     state). A dark rail could hide that problem, which is exactly why it was
+     attractive and exactly what made it wrong for this palette. So the folded
+     active row is the saturated accent instead — 5.79:1 against the rail and
+     6.20:1 under --color-text-inverse — and the relationship between block and
+     text is inverted relative to the expanded state. That is a real, visible
+     change across the fold and is called out as such in PROJECT_NOTES.md
+     rather than papered over.
+     --------------------------------------------------------------------- */
+  --color-rail: #f8f6ff;
+  /* 1.14:1 against --color-rail. Deliberately a step, not a jump, for the same
+     reason the rest of the system hovers lightly: the hover state is ALSO
+     carried by the icon going from --color-rail-text-muted to
+     --color-rail-text, so the fill only has to be perceptible. Muted icons
+     stay legible on it at 7.40:1. */
+  --color-rail-hover: #eae6fb;
+  /* 1.19:1 against --color-rail — the same hairline the expanded panel uses.
+     It is a separator, not a state, so it is not held to 3:1. */
+  --color-rail-border: #e6e1f5;
+  --color-rail-text: #171233;          /* 16.76:1 on --color-rail */
+  --color-rail-text-muted: #4b4468;    /*  8.43:1 on --color-rail */
+  --color-rail-active: #5438ff;        /*  6.20:1 with --color-text-inverse,
+                                           5.79:1 against --color-rail */
+  /* A near-white surface does not need the deep shadow a dark one did;
+     --shadow-card is what makes the panel read as detached from the canvas. */
+  --shadow-rail: var(--shadow-card);
+
+  /* The profile avatar in the rail needs NO override. A dark rail wanted one —
+     the default near-white placeholder fill was a bright chip in a dark panel —
+     and it was the only reason components.css had to be in scope for the shell
+     at all. With a light rail the default fill and ink are already correct, so
+     that rule is gone rather than re-tinted. Do not add it back. */
+
+  /* ---------------------------------------------------------------------
+     APP SHELL
+     --------------------------------------------------------------------- */
+  --sidebar-width: 240px;
+  --sidebar-width-reduced: 200px;
+  /* The track includes the 12px float gap on each side, so the PAINTED panel
+     is 52px, not 76px. That number is the one that has to be usable: with the
+     collapsed panel's reduced inline padding (8px) and the 1px border, the
+     row is 34px wide, which clears the 24x24 minimum target size in WCAG
+     2.5.8 and leaves room for the highlight block to span the row. The first
+     value, 68px, painted a 44px panel whose 16px inline padding left a 10px
+     content box — the highlight collapsed to a 10px sliver. That was found in
+     a browser, not on paper. */
+  --sidebar-width-collapsed: 76px;
+  /* The floating panel's inset from the viewport edges. */
+  --sidebar-float-gap: 12px;
+  --sidebar-float-radius: var(--radius-card);
+  --header-height: 64px;
+  --header-search-width: 280px;
+  --content-padding: var(--space-8);
+
+  --control-height: 40px;
+  --control-height-sm: 34px;
+
+  /* ---------------------------------------------------------------------
+     LAYERS
+     --------------------------------------------------------------------- */
+  --z-background: 0;            /* ambient background layer under all content */
+  --z-menu: 700;                /* row action menus; under the drawer */
+  --z-drawer-scrim: 800;
+  --z-drawer: 900;
+  --z-dialog: 1000;
+
+  /* ---------------------------------------------------------------------
+     MOTION — minimal and always overridable.
+     --------------------------------------------------------------------- */
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  /* The sidebar's width change and the active highlight's slide. Longer than
+     --duration-base because both are spatial moves the eye has to follow
+     across the panel, not a colour fade. Easing is deliberately the existing
+     --ease-standard, not a bespoke spring: one curve in the system. */
+  --duration-shell: 240ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+
+  /* ---------------------------------------------------------------------
+     COMPONENTS — geometry only. No colour lives here.
+     --------------------------------------------------------------------- */
+  --control-height-lg: 44px;  /* primary actions on touch / mobile */
+  --table-header-height: 44px;
+  --table-row-height: 52px;
+  --table-cell-padding-y: var(--space-3);
+  --table-cell-padding-x: var(--space-4);
+  --icon-size: 16px;
+  --icon-size-sm: 14px;
+  --icon-size-nav: 18px;  /* sidebar navigation glyphs */
+  --icon-stroke-width: 1.5;
+  --modal-width: 500px;
+  --modal-width-max-viewport: 84vw;
+
+  /* Focus ring: one shared geometry for every focusable element. */
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+  --focus-ring-offset-inset: -2px;
+
+  /* Form controls and indicators. */
+  --checkbox-size: 18px;
+  --status-dot-size: 6px;
+  --status-dot-size-sm: 10px;
+  --notice-accent-width: 3px;
+  --measure-text: 46ch;
+
+  /* The proportional bar in report breakdowns. The Share column carries the
+     real number, so this is presentation only. */
+  --bar-height: 8px;
+  --bar-width-min: 80px;
+  --bar-width-max: 160px;
+
+  /* Placeholder media (illustration / avatar slots with no real asset yet).
+     Geometry only — the colours come from the accent and surface tokens. */
+  --media-placeholder-min-height: 96px;
+  --media-placeholder-avatar-size: 40px;
+  --media-placeholder-inline-width: 120px;
+
+  /* Real illustration slots. The hero's artwork is boxed to a fixed card on BOTH
+     axes, because a slot sized on one axis alone still lets the other axis be
+     set by the source file: with only a width, a 1892x1364 SVG renders 1062px
+     wide and 765px tall, and the banner grows to 813px around it.
+
+     The artwork therefore fills the card's content box and `object-fit: contain`
+     scales it proportionally inside it, so the card is what is measured and the
+     illustration's own pixel dimensions never enter the layout. */
+  --illustration-hero-card-width: 248px;
+  --illustration-hero-card-height: 208px;
+  --illustration-hero-card-padding: var(--space-3);
+
+  /* The banner's own height ceiling — the single number the hero art is
+     constrained BY, rather than the art constraining the banner.
+
+     272px is roughly one third of the 813.63px an uncapped 1892px-wide
+     illustration produced, and still comfortably more than the 131px of copy
+     the text column needs, so the ceiling never has to crop real content. It is
+     paired with `overflow: hidden` on `.hero` so the guarantee holds even if a
+     future illustration is dropped in without a matching card rule. */
+  --hero-max-height: 272px;
+
+  /* ---------------------------------------------------------------------
+     STATUS — the four record states.
+
+     Colour is never the only signal: every badge renders its status as a
+     text label beside a filled dot, so these values only have to make the
+     states *distinguishable*, not independently readable.
+
+     How the four are kept apart, and what is actually verified:
+
+       1. Each status colour is >= 4.5:1 on its own tint.
+       2. Among the three chromatic states the hue margin is wide:
+          green ~155deg, blue ~227deg, amber ~36deg -> pairwise gaps of
+          59deg / 119deg / 177deg.
+       3. Inactive is a deliberate NEUTRAL (chroma 0.35), separated by
+          chroma rather than hue. Desaturating a purple keeps its hue, so
+          a hue-only rule would wrongly ban a grey. Chroma is what keeps
+          it apart from the accent (0.78), so the two cannot be confused.
+       4. No pair is both hue-similar and lightness-similar. Blue/amber sit
+          0.0068 apart in luminance but 177deg apart in hue; blue/neutral
+          are 38deg apart in hue but 0.056 apart in luminance.
+
+     Why not spread them in luminance instead: an AA text colour on a light
+     tint only occupies about L 0.04-0.16, so four states cannot be spread
+     far apart in lightness. The reverted Phase 6-7 blue palette had a
+     minimum pairwise luminance gap of 0.0006 and separated the states by
+     hue alone while also failing contrast; these do both.
+
+       Active      success green  — in service
+       Discharged  blue           — left care, still a valid record
+       Pending     warning amber  — needs review
+       Inactive    neutral slate  — deliberately NOT red; an inactive staff
+                                   account is not an error condition
+     --------------------------------------------------------------------- */
+  --color-status-active: var(--color-success);
+  --color-status-active-bg: var(--color-success-subtle);
+  --color-status-discharged: #0f5fc4;
+  --color-status-discharged-bg: #e6f0fd;
+  --color-status-pending: var(--color-warning);
+  --color-status-pending-bg: var(--color-warning-subtle);
+  --color-status-inactive: var(--color-text-secondary);
+  --color-status-inactive-bg: var(--color-surface-sunken);
+}

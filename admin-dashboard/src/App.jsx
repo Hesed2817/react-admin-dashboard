@@ -4,6 +4,7 @@ import { Dashboard } from "./pages/Dashboard";
 import { Users } from "./pages/Users";
 import { Patients } from "./pages/Patients";
 import { Reports } from "./pages/Reports";
+import { Activity } from "./pages/Activity";
 import { Settings } from "./pages/Settings";
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
           <Route path="users" element={<Users />} />
           <Route path="patients" element={<Patients />} />
           <Route path="reports" element={<Reports />} />
+          <Route path="activity" element={<Activity/>} />
           <Route path="settings" element={<Settings/>} />
         </Route>
       </Routes>

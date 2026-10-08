@@ -1,42 +1,47 @@
+import { useState } from "react";
 import { AddUserForm } from "../components/AddUserForm";
+import { Button } from "../components/Button";
 import { EditUserForm } from "../components/EditUserForm";
+import { EmptyState } from "../components/EmptyState";
+import { Field } from "../components/Field";
+import { Icon } from "../components/Icon";
 import { Modal } from "../components/Modal";
+import { PageActions } from "../components/PageActions";
+import { PageHeader } from "../components/PageHeader";
 import { SelectedUser } from "../components/SelectedUser";
 import { UserTable } from "../components/UserTable";
-import { useState } from "react";
-import { PageHeader } from "../components/PageHeader";
-import { PageActions } from "../components/PageActions";
 import { useUsers } from "../hooks/useUsers";
+import {
+  ALL_STATUSES,
+  FAVORITES_FILTER,
+  NON_FAVORITES_FILTER,
+  USER_STATUS_OPTIONS,
+} from "../constants/statuses";
+import { filterUsers } from "../utils/users";
+
 function Users() {
   const { users, loading, error, addUser, updateUser, deleteUser, toggleFavorite } =
     useUsers();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUserId, setSelectedUserId] = useState(null);
   const [editingUser, setEditingUser] = useState(null);
   const [userToDelete, setUserToDelete] = useState(null);
-  const [statusFilter, setStatusFilter] = useState("All");
-  const [favoriteFilter, setFavoriteFilter] = useState("All");
+  const [statusFilter, setStatusFilter] = useState(ALL_STATUSES);
+  const [favoriteFilter, setFavoriteFilter] = useState(ALL_STATUSES);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
 
-  const filteredUsers = users.filter((user) => {
-    const search = searchTerm.trim().toLowerCase();
-    const matches =
-      user.name.toLowerCase().includes(search) ||
-      user.email.toLowerCase().includes(search) ||
-      user.role.toLowerCase().includes(search);
-    const statusMatches =
-      statusFilter === "All" || user.status === statusFilter;
-    const favoriteMatches =
-      favoriteFilter === "All" ? true :
-      favoriteFilter === "Favorites" ? user.isFavorite === true : user.isFavorite === false;
-    
-    return matches && statusMatches && favoriteMatches ;
-  });
-  function handleViewUser(id) {
-    const user = users.find((user) => user.id === id);
+  const selectedUser =
+    users.find((user) => user.id === selectedUserId) || null;
 
-    setSelectedUser(user);
+  const filteredUsers = filterUsers(users, {
+    searchTerm,
+    statusFilter,
+    favoriteFilter,
+  });
+
+  function handleViewUser(id) {
+    setSelectedUserId(id);
   }
 
   function handleAddUser(newUser) {
@@ -45,31 +50,24 @@ function Users() {
   }
 
   function handleEditUser(id) {
-    const editingUser = users.find((user) => user.id === id);
-    setEditingUser(editingUser);
+    setEditingUser(users.find((user) => user.id === id));
   }
 
   function handleSaveUser(updatedUser) {
     updateUser(updatedUser);
-
-    if (selectedUser && selectedUser.id === updatedUser.id) {
-      setSelectedUser(updatedUser);
-    }
-
     setEditingUser(null);
   }
 
   function handleDeleteUser(id) {
-    const user = users.find((user) => user.id === id);
-    setUserToDelete(user);
+    setUserToDelete(users.find((user) => user.id === id));
     setIsDeleteModalOpen(true);
   }
 
   function handleConfirmDelete() {
     deleteUser(userToDelete.id);
 
-    if (selectedUser && selectedUser.id === userToDelete.id) {
-      setSelectedUser(null);
+    if (selectedUserId === userToDelete.id) {
+      setSelectedUserId(null);
     }
 
     setUserToDelete(null);
@@ -91,50 +89,92 @@ function Users() {
 
   return (
     <div>
-      <PageHeader title="Users" description="Manage and view registered users">
-        <PageActions>
-          <select
-            name="filter-options"
-            id="filter"
-            value={statusFilter}
-            onChange={(event) => setStatusFilter(event.target.value)}
-          >
-            <option value="All">All</option>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>            
-          </select>
+      <PageHeader
+        title="Users"
+        description="Manage and view registered users"
+      >
+        <PageActions label="User filters and search">
+          <Field label="Status">
+            {(controlProps) => (
+              <select
+                className="field-control"
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value)}
+                {...controlProps}
+              >
+                <option value={ALL_STATUSES}>All statuses</option>
+                {USER_STATUS_OPTIONS.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
+            )}
+          </Field>
 
-          <select name="filter-favs" id="favorites" value={favoriteFilter}
-            onChange={(event) => setFavoriteFilter(event.target.value)}>
-            <option value="All">All</option>
-            <option value="Favorites">Favorites</option>
-            <option value="Non-favorites">Non-favorites</option>
-          </select>
-          <input
-            type="text"
-            placeholder="Search users..."
-            value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
-          />
-          <button type="button" onClick={handleAddUserModal}>
-            Add User
-          </button>
+          <Field label="Favorites">
+            {(controlProps) => (
+              <select
+                className="field-control"
+                value={favoriteFilter}
+                onChange={(event) => setFavoriteFilter(event.target.value)}
+                {...controlProps}
+              >
+                <option value={ALL_STATUSES}>All</option>
+                <option value={FAVORITES_FILTER}>Favorites</option>
+                <option value={NON_FAVORITES_FILTER}>Non-favorites</option>
+              </select>
+            )}
+          </Field>
+
+          <Field label="Search users" className="search-field">
+            {(controlProps) => (
+              <>
+                <Icon name="search" />
+                <input
+                  type="text"
+                  className="field-control"
+                  placeholder="Name, email or role"
+                  value={searchTerm}
+                  onChange={(event) => setSearchTerm(event.target.value)}
+                  {...controlProps}
+                />
+              </>
+            )}
+          </Field>
+
+          <div className="page-actions__primary">
+            <Button variant="primary" onClick={handleAddUserModal}>
+              <Icon name="plus" />
+              Add User
+            </Button>
+          </div>
         </PageActions>
       </PageHeader>
+
       {isAddUserModalOpen && (
-        <Modal onClose={() => setIsAddUserModalOpen(false)}>
+        <Modal title="Add user" onClose={() => setIsAddUserModalOpen(false)}>
           <AddUserForm onAddUser={handleAddUser} />
         </Modal>
       )}
-      {isDeleteModalOpen && (
-        <Modal onClose={handleCancelDelete} onConfirm={handleConfirmDelete}>
-          <h3>Delete User</h3>
-          <p>Are you sure you want to delete {userToDelete.name}?</p>
+
+      {isDeleteModalOpen && userToDelete && (
+        <Modal
+          title="Delete user"
+          onClose={handleCancelDelete}
+          onConfirm={handleConfirmDelete}
+          confirmLabel="Delete user"
+          confirmVariant="danger"
+        >
+          <p>
+            Are you sure you want to delete <strong>{userToDelete.name}</strong>?
+            This permanently removes the record and cannot be undone.
+          </p>
         </Modal>
       )}
 
       {editingUser && (
-        <Modal onClose={() => setEditingUser(null)}>
+        <Modal title="Edit user" onClose={() => setEditingUser(null)}>
           <EditUserForm
             key={editingUser.id}
             onSave={handleSaveUser}
@@ -142,25 +182,47 @@ function Users() {
           />
         </Modal>
       )}
+
       {loading ? (
-        <p>Loading users...</p>
+        <div className="loading" role="status" aria-live="polite">
+          <span>Loading users...</span>
+          <span className="loading__bar" />
+        </div>
       ) : error ? (
-        <p>{error}</p>
+        <p className="inline-message inline-message--error" role="alert">
+          {error}
+        </p>
+      ) : users.length === 0 ? (
+        <EmptyState
+          title="No users yet"
+          message="Add your first user to get started."
+          icon="plus"
+        >
+          <Button variant="primary" onClick={handleAddUserModal}>
+            <Icon name="plus" />
+            Add User
+          </Button>
+        </EmptyState>
+      ) : filteredUsers.length === 0 ? (
+        <EmptyState
+          title="No matches"
+          message="No users match the current search and filters."
+          icon="search"
+        />
       ) : (
-        <>
-          {filteredUsers.length === 0 ? (
-            <p>No users found.</p>
-          ) : (
-            <UserTable
-              users={filteredUsers}
-              onViewUser={handleViewUser}
-              onEditUser={handleEditUser}
-              onDeleteUser={handleDeleteUser}
-              onToggleFavorite={handleToggleFavorites}
-            />
-          )}
-          {selectedUser && <SelectedUser user={selectedUser} />}
-        </>
+        <UserTable
+          users={filteredUsers}
+          onViewUser={handleViewUser}
+          onEditUser={handleEditUser}
+          onDeleteUser={handleDeleteUser}
+          onToggleFavorite={handleToggleFavorites}
+        />
+      )}
+
+      {selectedUser && (
+        <Modal title="User details" onClose={() => setSelectedUserId(null)}>
+          <SelectedUser user={selectedUser} />
+        </Modal>
       )}
     </div>
   );
