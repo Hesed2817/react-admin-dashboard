@@ -1344,3 +1344,5 @@ react + react-dom + react-router + fontawesome).
 7. **A plain mouse click does not focus the trigger in headless Chrome.** The
    keyboard path is unaffected (Enter/Space activate, Escape restores), but this
    is a browser-level behaviour, not something the component controls.
+
+- **Background motion exception (scoped).** The "no constant background movement" motion principle is intentionally overridden for **ONE** element only: a single ambient background layer behind the entire app shell (the React Bits GradientWaves canvas). This exception does NOT extend to any other component, UI element, or decorative effect. All other content must remain motion-free by default. When `prefers-reduced-motion: reduce` is active, this background layer is not mounted at all (replaced by a static CSS background using `--gradient-hero`).

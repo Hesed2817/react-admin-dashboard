@@ -1,3 +1,4 @@
+import SiteBackground from "../components/background/SiteBackground";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Outlet, useLocation } from "react-router";
 import { Header } from "../components/Header";
@@ -77,6 +78,7 @@ function AdminLayout() {
                   : "admin-layout"
               }
             >
+              <SiteBackground />
               <Header
                 isMenuOpen={isDrawerOpen}
                 onToggleMenu={() => setIsDrawerRequestedOpen((open) => !open)}

@@ -261,6 +261,7 @@
   /* ---------------------------------------------------------------------
      LAYERS
      --------------------------------------------------------------------- */
+  --z-background: 0;            /* ambient background layer under all content */
   --z-menu: 700;                /* row action menus; under the drawer */
   --z-drawer-scrim: 800;
   --z-drawer: 900;
